@@ -47,7 +47,7 @@ class _TabBarExampleState extends State<message_screen>
               width: 20,
               decoration: const BoxDecoration(
                   image: DecorationImage(
-                image: AssetImage("assets/icons/bell.png"),
+                image: AssetImage("assets/images/bell.png"),
               )),
             ),
           ),

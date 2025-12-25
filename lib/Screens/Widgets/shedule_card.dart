@@ -80,7 +80,7 @@ class shedule_card extends StatelessWidget {
                 width: MediaQuery.of(context).size.width * 0.07,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage("assets/icons/callender2.png"),
+                    image: AssetImage("assets/images/callender2.png"),
                     filterQuality: FilterQuality.high,
                   ),
                 ),
@@ -97,7 +97,7 @@ class shedule_card extends StatelessWidget {
                 width: MediaQuery.of(context).size.width * 0.07,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage("assets/icons/watch.png"),
+                    image: AssetImage("assets/images/watch.png"),
                     filterQuality: FilterQuality.high,
                   ),
                 ),
@@ -114,7 +114,7 @@ class shedule_card extends StatelessWidget {
                 width: MediaQuery.of(context).size.width * 0.07,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage("assets/icons/elips.png"),
+                    image: AssetImage("assets/images/elips.png"),
                     filterQuality: FilterQuality.high,
                   ),
                 ),

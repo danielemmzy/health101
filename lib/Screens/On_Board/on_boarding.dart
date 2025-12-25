@@ -1,144 +1,165 @@
+// screens/on_boarding.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../Login-Signup/login_signup.dart';
-import 'on_board1.dart';
-import 'on_board2.dart';
-import 'on_board3.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
-class on_boarding extends StatefulWidget {
-  const on_boarding({super.key});
+import '../Login-Signup/login_signup.dart';
+import 'on_board1.dart';
+import 'on_board2.dart';
+import 'on_board3.dart';
+
+class OnBoarding extends StatefulWidget {
+  const OnBoarding({super.key});
 
   @override
-  State<on_boarding> createState() => _on_boardingState();
+  State<OnBoarding> createState() => _OnBoardingState();
 }
 
-class _on_boardingState extends State<on_boarding> {
+class _OnBoardingState extends State<OnBoarding> {
   final PageController _controller = PageController();
-
-  bool onLastpage = false;
+  bool onLastPage = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Stack(
-      children: [
-        PageView(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // ONBOARDING PAGES
+          PageView(
             controller: _controller,
             onPageChanged: (index) {
               setState(() {
-                onLastpage = (index == 2);
+                onLastPage = (index == 2);
               });
             },
             children: const [
-              on_board1(),
-              on_board2(),
-              on_board3(),
-            ]),
-        Container(
-          alignment: const Alignment(-0.6, 0.75),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              GestureDetector(
-                  onTap: () {
-                    _controller.jumpToPage(2);
-                  },
-                  child: Text(
-                    "Skip",
-                    style: GoogleFonts.inter(fontSize: 15, color: Colors.grey),
-                  )),
-              SmoothPageIndicator(
-                controller: _controller,
-                count: 3,
-                effect: const SlideEffect(
-                    spacing: 4.0,
-                    radius: 4.0,
-                    dotWidth: 14.0,
-                    dotHeight: 7.0,
-                    strokeWidth: 1.5,
-                    dotColor: Color.fromARGB(255, 136, 190, 241)
-,
-                    activeDotColor: Color(0xFF339CFF)
-),
-              ),
-              onLastpage
-                  ? GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            PageTransition(
-                                type: PageTransitionType.bottomToTop,
-                                child: const login_signup()));
-                      },
-                      child: Container(
-                        height: MediaQuery.of(context).size.height * 0.05,
-                        width: MediaQuery.of(context).size.width * 0.3,
-                        decoration: BoxDecoration(
-                            color: const Color(0xFF339CFF),
-                            borderRadius: BorderRadius.circular(35)),
-                        child: Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Done ",
-                                style: GoogleFonts.inter(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    letterSpacing: 1),
-                              ),
-                              SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.04,
-                                width: MediaQuery.of(context).size.width * 0.04,
-                                child: Image.asset("assets/icons/check.png"),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ))
-                  : GestureDetector(
-                      onTap: () {
-                        _controller.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeIn);
-                      },
-                      child: Container(
-                        height: MediaQuery.of(context).size.height * 0.05,
-                        width: MediaQuery.of(context).size.width * 0.3,
-                        decoration: BoxDecoration(
-                            color: const Color(0xFF339CFF),
-                            borderRadius: BorderRadius.circular(35)),
-                        child: Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Next ",
-                                style: GoogleFonts.inter(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                    letterSpacing: 1),
-                              ),
-                              SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.06,
-                                width: MediaQuery.of(context).size.width * 0.06,
-                                child: Image.asset("assets/icons/arrow.png"),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )),
+              OnBoard1(),
+              OnBoard2(),
+              OnBoard3(),
             ],
           ),
-        )
-      ],
-    ));
+
+          // BOTTOM CONTROLS — MOVED LOWER, NO OVERLAP
+          Positioned(
+            bottom: 8.h, // Lowered from screen edge
+            left: 0,
+            right: 0,
+            child: Column(
+              children: [
+                // INDICATOR
+                Center(
+                  child: SmoothPageIndicator(
+                    controller: _controller,
+                    count: 3,
+                    effect: ExpandingDotsEffect(
+                      dotHeight: 8,
+                      dotWidth: 12,
+                      spacing: 6,
+                      expansionFactor: 4,
+                      activeDotColor: const Color(0xFF339CFF),
+                      dotColor: const Color(0xFF339CFF).withOpacity(0.3),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 2.h),
+
+                // BUTTON ROW
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // SKIP
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pushReplacement(
+                            context,
+                            PageTransition(
+                              type: PageTransitionType.fade,
+                              child: const login_signup(),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          "Skip",
+                          style: GoogleFonts.inter(
+                            fontSize: 16.sp,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+
+                      // NEXT / DONE BUTTON
+                      GestureDetector(
+                        onTap: () {
+                          if (onLastPage) {
+                            Navigator.pushReplacement(
+                              context,
+                              PageTransition(
+                                type: PageTransitionType.fade,
+                                child: const login_signup(),
+                              ),
+                            );
+                          } else {
+                            _controller.nextPage(
+                              duration: const Duration(milliseconds: 400),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF339CFF),
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF339CFF).withOpacity(0.3),
+                                blurRadius: 15,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                onLastPage ? "Get Started" : "Next",
+                                style: GoogleFonts.inter(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              SizedBox(width: 2.w),
+                              Icon(
+                                onLastPage ? Icons.check : Icons.arrow_forward_ios_rounded,
+                                color: Colors.white,
+                                size: 18.sp,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }

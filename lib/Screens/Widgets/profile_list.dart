@@ -1,62 +1,37 @@
+// widgets/profile_list.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
-class profile_list extends StatelessWidget {
-  final String title;
+class ProfileList extends StatelessWidget {
   final String image;
+  final String title;
   final Color color;
+  final VoidCallback? onTap;
 
-  const profile_list({super.key, required this.image, required this.title, required this.color});
+  const ProfileList({
+    super.key,
+    required this.image,
+    required this.title,
+    required this.color,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.06,
-            width: MediaQuery.of(context).size.width * 0.9,
-            child: Row(children: [
-              Container(
-                height: MediaQuery.of(context).size.height * 0.06,
-                width: MediaQuery.of(context).size.width * 0.1500,
-                decoration: const BoxDecoration(
-                  color: Color.fromARGB(255, 247, 250, 247),
-                  shape: BoxShape.circle,
-                ),
-                child: Image.asset(image),
-              ),
-              const SizedBox(
-                width: 5,
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.06,
-                width: MediaQuery.of(context).size.width * 0.5800,
-                child: Row(children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Text(
-                      title,
-                      style: GoogleFonts.inter(
-                          fontSize: 17.sp,
-                          fontWeight: FontWeight.w600,
-                          color: color),
-                    ),
-                  ),
-                ]),
-              ),
-              Container(
-                  height: MediaQuery.of(context).size.height * 0.06,
-                  width: MediaQuery.of(context).size.width * 0.1100,
-                  decoration: const BoxDecoration(),
-                  child: Image.asset("assets/icons/forward.png")),
-            ]),
-          ),
-        ],
+    return ListTile(
+      onTap: onTap,
+      leading: Image.asset(image, width: 7.w, height: 7.w),
+      title: Text(
+        title,
+        style: GoogleFonts.poppins(
+          fontSize: 15.sp,
+          color: color,
+          fontWeight: FontWeight.w500,
+        ),
       ),
+      trailing: Icon(Icons.chevron_right, color: Colors.grey[400], size: 20.sp),
+      contentPadding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 0.5.h),
     );
   }
 }

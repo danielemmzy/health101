@@ -53,21 +53,26 @@ dev_dependencies:
   flutter_chat_types: ^3.6.2
   flutter_chat_ui: ^2.9.1
   smooth_page_indicator: ^1.2.1
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+  http: ^1.5.0
+  flutter_screenutil: ^5.9.3
+  iconly: ^1.0.1
+  flutter_rating_bar: ^4.0.1
+  image_picker: ^1.2.1
+  url_launcher: ^6.3.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
-
-  # To add assets to your application, add an assets section, like this:
-assets:
+  assets:
     - assets/
+    - assets/images/
+
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

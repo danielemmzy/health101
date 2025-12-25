@@ -85,7 +85,7 @@ class list_doctor1 extends StatelessWidget {
                             decoration: const BoxDecoration(
                                 image: DecorationImage(
                                     image: AssetImage(
-                                      "assets/icons/star.png",
+                                      "assets/images/star.png",
                                     ),
                                     filterQuality: FilterQuality.high)),
                           ),
@@ -111,7 +111,7 @@ class list_doctor1 extends StatelessWidget {
                         decoration: const BoxDecoration(
                           image: DecorationImage(
                               image: AssetImage(
-                                "assets/icons/Location.png",
+                                "assets/images/Location.png",
                               ),
                               filterQuality: FilterQuality.high),
                         ),

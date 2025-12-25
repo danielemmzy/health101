@@ -10,7 +10,7 @@ import 'package:health101/main.dart'; // Import your main app widget
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(const health101());
+    await tester.pumpWidget(const Health101());
 
     // Verify the placeholder from the minimal app is present.
     expect(find.text('health101 placeholder'), findsOneWidget);

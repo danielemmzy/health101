@@ -19,7 +19,7 @@ class _Screen1State extends State<Screen1> {
     Timer(const Duration(seconds: 3), () {
       Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (BuildContext context) {
-        return const on_boarding();
+        return const OnBoarding();
       }));
     });
   }
@@ -37,7 +37,7 @@ class _Screen1State extends State<Screen1> {
               width: MediaQuery.of(context).size.height * 01,
               decoration: const BoxDecoration(
                   image: DecorationImage(
-                image: AssetImage("images/logo.png"),
+                image: AssetImage("assets/images/logo.png"),
               )),
             )
           ]),

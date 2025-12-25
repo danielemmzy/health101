@@ -25,7 +25,7 @@ class banner extends StatelessWidget {
                 height: 25,
               ),
               Text(
-                "Early protection for\nyour family health",
+                "Find Pharmacies online\nsafe and reliable",
                 style: GoogleFonts.poppins(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w700,
@@ -56,7 +56,7 @@ class banner extends StatelessWidget {
               height: MediaQuery.of(context).size.height * 0.5,
               width: MediaQuery.of(context).size.width * 0.3,
               alignment: Alignment.bottomCenter,
-              child: Image.asset("assets/icons/female.png"))
+              child: Image.asset("assets/images/female.png"))
         ]),
       ),
     );

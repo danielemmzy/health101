@@ -9,6 +9,7 @@ import '../Widgets/article.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
+// ignore: camel_case_types
 class articlePage extends StatelessWidget {
   const articlePage({super.key});
 
@@ -31,7 +32,7 @@ class articlePage extends StatelessWidget {
           icon: SizedBox(
               height: MediaQuery.of(context).size.height * 0.06,
               width: MediaQuery.of(context).size.width * 0.06,
-              child: Image.asset("assets/icons/back2.png")),
+              child: Image.asset("assets/images/back2.png")),
           onPressed: () {
             Navigator.pushReplacement(
                 context,
@@ -43,7 +44,7 @@ class articlePage extends StatelessWidget {
           SizedBox(
               height: MediaQuery.of(context).size.height * 0.06,
               width: MediaQuery.of(context).size.width * 0.06,
-              child: Image.asset("assets/icons/more.png")),
+              child: Image.asset("assets/images/more.png")),
         ],
       ),
       backgroundColor: Colors.white,
@@ -72,7 +73,7 @@ class articlePage extends StatelessWidget {
                       height: MediaQuery.of(context).size.height * 0.01,
                       width: MediaQuery.of(context).size.width * 0.01,
                       child: Image.asset(
-                        "assets/icons/search.png",
+                        "assets/images/search.png",
                         filterQuality: FilterQuality.high,
                       ),
                     ),

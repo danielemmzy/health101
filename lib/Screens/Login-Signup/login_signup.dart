@@ -20,7 +20,7 @@ class login_signup extends StatelessWidget {
           width: MediaQuery.of(context).size.height * 01,
           decoration: const BoxDecoration(
               image: DecorationImage(
-                  image: AssetImage("images/logo-green.png"),
+                  image: AssetImage("assets/images/logo-green.png"),
                   filterQuality: FilterQuality.high)),
         ),
         Row(
@@ -100,7 +100,7 @@ class login_signup extends StatelessWidget {
               Navigator.pushReplacement(
                   context,
                   PageTransition(
-                      type: PageTransitionType.rightToLeft, child: const register()));
+                      type: PageTransitionType.rightToLeft, child: const Register()));
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(255, 255, 255, 255),

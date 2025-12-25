@@ -81,7 +81,7 @@ class article extends StatelessWidget {
             height: MediaQuery.of(context).size.height * 0.07,
             width: MediaQuery.of(context).size.width * 0.09,
             child: Image.asset(
-              "assets/icons/Bookmark.png",
+              "assets/images/Bookmark.png",
               filterQuality: FilterQuality.high,
             ),
           ),

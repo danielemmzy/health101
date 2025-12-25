@@ -18,7 +18,7 @@ class shedule_tab1 extends StatelessWidget {
           subText: "Chardiologist",
           date: "26/06/2022",
           time: "10:30 AM",
-          image: "assets/icons/male-doctor.png",
+          image: "assets/images/male-doctor.png",
         ),
         SizedBox(
           height: 20,
@@ -29,7 +29,7 @@ class shedule_tab1 extends StatelessWidget {
           subText: "Chardiologist",
           date: "26/06/2022",
           time: "2:00 PM",
-          image: "assets/icons/female-doctor2.png",
+          image: "assets/images/female-doctor2.png",
         )
       ]),
     );

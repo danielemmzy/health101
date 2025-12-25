@@ -50,7 +50,7 @@ class message_all_widget extends StatelessWidget {
                     const SizedBox(
                       height: 8,
                     ),
-                    //Main text here "assets/icons/male-doctor.png"
+                    //Main text here "assets/images/male-doctor.png"
                     Text(
                       Maintext,
                       style: GoogleFonts.poppins(

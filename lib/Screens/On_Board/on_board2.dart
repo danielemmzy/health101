@@ -1,63 +1,60 @@
+// screens/on_board2.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
-class on_board2 extends StatelessWidget {
-  const on_board2({super.key});
+class OnBoard2 extends StatelessWidget {
+  const OnBoard2({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      child: Column(children: [
-        const SizedBox(
-          height: 40,
-        ),
-        Container(
-          height: MediaQuery.of(context).size.height * 0.6,
-          width: MediaQuery.of(context).size.width * 0.8,
-          decoration: const BoxDecoration(
-              image: DecorationImage(
-                  alignment: Alignment.bottomCenter,
-                  image: AssetImage(
-                    "images/doctor2.png",
-                  ),
-                  filterQuality: FilterQuality.high)),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                height: MediaQuery.of(context).size.height * 0.2,
-                width: MediaQuery.of(context).size.width * 0.8,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color.fromARGB(255, 247, 247, 247),
-                      Color.fromARGB(255, 255, 255, 255),
-                    ],
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(25),
-                  child: Text(
-                    "Find a lot of specialist\ndoctors in one place",
-                    style: GoogleFonts.inter(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: const Color.fromARGB(255, 37, 37, 37)),
-                  ),
-                ),
-              )
-            ],
+      padding: EdgeInsets.symmetric(horizontal: 6.w),
+      child: Column(
+        children: [
+          SizedBox(height: 8.h),
+
+          // DOCTOR IMAGE — PURE WHITE, NO BORDER, SOFT CORNERS
+          Container(
+            width: 85.w,
+            height: 55.h,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              image: const DecorationImage(
+                image: AssetImage("assets/images/doctor2.png"),
+                fit: BoxFit.contain,
+              ),
+            ),
           ),
-        )
-      ]),
+
+          SizedBox(height: 3.h),
+
+          // TEXT CARD — PURE WHITE, SUBTLE SHADOW, CENTERED
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(6.w),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              
+            ),
+            child: Text(
+              "Connect with healthcare professionals\nBook online and offline appointments with specialists",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 16.5.sp,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1A1A1A),
+                height: 1.6,
+              ),
+            ),
+          ),
+
+          SizedBox(height: 8.h),
+        ],
+      ),
     );
   }
 }

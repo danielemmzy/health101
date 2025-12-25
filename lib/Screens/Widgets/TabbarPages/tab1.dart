@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:health101/Screens/Login-Signup/verificationForgotpass.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:page_transition/page_transition.dart';
 
 class tab1 extends StatelessWidget {
   const tab1({super.key});
@@ -32,7 +34,7 @@ class tab1 extends StatelessWidget {
                       horizontal: 10,
                     ),
                     child: Container(
-                      child: Image.asset("assets/icons/email.png"),
+                      child: Image.asset("assets/images/email.png"),
                     ),
                   ),
                   prefixIconColor: const Color(0xFF339CFF),
@@ -50,7 +52,10 @@ class tab1 extends StatelessWidget {
           width: MediaQuery.of(context).size.width * 01,
           child: ElevatedButton(
             onPressed: () {
-              // Perform verification or other actions here
+              Navigator.pushReplacement(
+                      context,
+                      PageTransition(type: PageTransitionType.rightToLeft, child: VerificationForgotScreen()),
+                    );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF339CFF),

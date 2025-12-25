@@ -1,31 +1,34 @@
+// screens/forgot_pass.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:page_transition/page_transition.dart';
+
+import 'login.dart';
 import '../Widgets/TabbarPages/tab1.dart';
 import '../Widgets/TabbarPages/tab2.dart';
-import 'login.dart';
-import 'package:page_transition/page_transition.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
 
-class forgot_pass extends StatefulWidget {
-  const forgot_pass({super.key});
+
+class ForgotPassScreen extends StatefulWidget {
+  const ForgotPassScreen({super.key});
 
   @override
-  _TabBarExampleState createState() => _TabBarExampleState();
+  State<ForgotPassScreen> createState() => _ForgotPassScreenState();
 }
 
-class _TabBarExampleState extends State<forgot_pass>
+class _ForgotPassScreenState extends State<ForgotPassScreen>
     with SingleTickerProviderStateMixin {
-  late TabController tabController;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
-    tabController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -34,115 +37,84 @@ class _TabBarExampleState extends State<forgot_pass>
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        leading: IconButton(
-          icon: SizedBox(
-              height: MediaQuery.of(context).size.height * 0.06,
-              width: MediaQuery.of(context).size.width * 0.06,
-              child: Image.asset("assets/icons/back2.png")),
-          onPressed: () {
-            Navigator.push(
-                context,
-                PageTransition(
-                    type: PageTransitionType.topToBottom, child: const login()));
-          },
-        ),
         backgroundColor: Colors.white,
-        toolbarHeight: 80,
         elevation: 0,
+        toolbarHeight: 80,
+        leading: IconButton(
+          icon: Image.asset("assets/images/back2.png", width: 24, height: 24),
+          onPressed: () => Navigator.pushReplacement(
+            context,
+            PageTransition(type: PageTransitionType.fade, child: const login()),
+          ),
+        ),
       ),
-      body: SingleChildScrollView(
-        physics: const NeverScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 6.w),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(
-                height: 40,
+              // TITLE
+              Text(
+                "Forgot your password?",
+                style: GoogleFonts.poppins(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    "Forgot your password?",
-                    style: GoogleFonts.poppins(
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  )
-                ],
+              SizedBox(height: 1.5.h),
+
+              // SUBTITLE
+              Text(
+                "Enter your email or phone number, we will send you a confirmation code",
+                style: GoogleFonts.poppins(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black54,
+                ),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(
-                height: 10,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    "Enter your email or your phone number, we\nwill send you confirmation code",
-                    style: GoogleFonts.poppins(
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.black54),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height,
-                child: Column(
-                  children: [
-                    const SizedBox(
-                      height: 50,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Container(
-                        // height: 50,
-                        width: MediaQuery.of(context).size.height,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                              color: const Color.fromARGB(255, 235, 235, 235)),
-                          color: const Color.fromARGB(255, 241, 241, 241),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(5),
-                              child: TabBar(
-                                indicator: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(25),
-                                ),
-                                indicatorColor:
-                                    const Color.fromARGB(255, 241, 241, 241),
-                                unselectedLabelColor: Colors.grey,
-                                labelColor:
-                                    const Color(0xFF339CFF),
-                                controller: tabController,
-                                tabs: const [
-                                  Tab(
-                                    text: "Email",
-                                  ),
-                                  Tab(
-                                    text: "Phone",
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    Expanded(
-                        child: TabBarView(
-                            controller: tabController,
-                            children: const [tab1(), tab2()]))
+              SizedBox(height: 5.h),
+
+              // TAB BAR
+              Container(
+                padding: EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Color(0xFFF1F1F1),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  indicator: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  labelColor: Color(0xFF339CFF),
+                  unselectedLabelColor: Colors.grey.shade600,
+                  labelStyle: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15.sp),
+                  tabs: [
+                    Tab(text: "Email"),
+                    Tab(text: "Phone"),
                   ],
                 ),
               ),
+              SizedBox(height: 4.h),
+
+              // TAB CONTENT
+              SizedBox(
+                height: 35.h, // Responsive height
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    tab1(),
+                    tab2(),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 3.h),
             ],
           ),
         ),

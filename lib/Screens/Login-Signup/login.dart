@@ -21,7 +21,7 @@ class login extends StatelessWidget {
           icon: SizedBox(
               height: MediaQuery.of(context).size.height * 0.06,
               width: MediaQuery.of(context).size.width * 0.06,
-              child: Image.asset("assets/icons/back2.png")),
+              child: Image.asset("assets/images/back2.png")),
           onPressed: () {
             Navigator.push(
                 context,
@@ -50,13 +50,13 @@ class login extends StatelessWidget {
             height: 40,
           ),
           //Text field Login import from Auth_text_field widget
-          const Auth_text_field(text: "Enter you email", icon: "assets/icons/email.png"),
+          const Auth_text_field(text: "Enter you email", icon: "assets/images/email.png"),
           const SizedBox(
             height: 5,
           ),
           //Text field Password
           const Auth_text_field(
-              text: "Enter your password", icon: "assets/icons/lock.png"),
+              text: "Enter your password", icon: "assets/images/lock.png"),
           Row(mainAxisAlignment: MainAxisAlignment.end, children: [
             GestureDetector(
               onTap: () {
@@ -64,7 +64,7 @@ class login extends StatelessWidget {
                     context,
                     PageTransition(
                         type: PageTransitionType.bottomToTop,
-                        child: const forgot_pass()));
+                        child: const ForgotPassScreen()));
               },
               child: Text(
                 "Forgot your password?",
@@ -128,7 +128,7 @@ class login extends StatelessWidget {
                       context,
                       PageTransition(
                           type: PageTransitionType.rightToLeft,
-                          child: const register()));
+                          child: const Register()));
                 },
                 child: Text(
                   "Sign Up",
@@ -166,16 +166,16 @@ class login extends StatelessWidget {
             height: 30,
           ),
           const auth_social_logins(
-              logo: "images/google.png", text: "Sign in with Google"),
+              logo: "assets/images/google.png", text: "Sign in with Google"),
           const SizedBox(
             height: 20,
           ),
-          const auth_social_logins(logo: "images/apple.png", text: "Sign in Apple"),
+          const auth_social_logins(logo: "assets/images/apple.png", text: "Sign in Apple"),
           const SizedBox(
             height: 20,
           ),
           const auth_social_logins(
-              logo: "images/facebook.png", text: "Sign in facebook")
+              logo: "assets/images/facebook.png", text: "Sign in facebook")
         ]),
       ),
     );
