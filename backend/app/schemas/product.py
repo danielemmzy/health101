@@ -23,6 +23,7 @@ class ProductBase(BaseModel):
     image_url: Optional[str] = None
 
 class ProductCreate(ProductBase):
+    pharmacy_id: int
     """Used by pharmacy to add a new product"""
 
     @field_validator("price")

@@ -44,10 +44,16 @@ class User(Base):
         passive_deletes=True,
     )
 
-    # In app/models/user.py
-
-
-pharmacy = relationship(
-    "Pharmacy", 
-    back_populates="user", 
-    uselist=False)
+    
+    pharmacy = relationship(
+        "Pharmacy", 
+        back_populates="user", 
+        uselist=False)
+    
+        
+    orders = relationship(
+        "Order",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )

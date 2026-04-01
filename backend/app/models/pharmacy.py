@@ -22,3 +22,4 @@ class Pharmacy(Base):
 
     products = relationship("Product", back_populates="pharmacy", cascade="all, delete-orphan")
     user = relationship("User", back_populates="pharmacy", uselist=False)
+    orders = relationship("Order", back_populates="pharmacy", cascade="all, delete-orphan")
