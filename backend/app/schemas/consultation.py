@@ -4,7 +4,7 @@ from typing import List, Optional, Dict
 
 class DoctorBase(BaseModel):
     id: int
-    name: str
+    name: Optional[str] = None
     specialty: str
     bio: Optional[str] = None
     experience_years: int

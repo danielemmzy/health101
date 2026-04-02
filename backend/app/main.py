@@ -14,12 +14,24 @@ from app.routers.pharmacy import router as pharmacy_router
 from app.routers.product import router as product_router
 from app.routers.order import router as order_router    
 from app.routers.cart import router as cart_router
+from app.routers.admin.doctor import router as admin_doctor_router
+from app.routers.admin.pharmacy import router as admin_pharmacy_router
+from app.routers.admin.product import router as admin_product_router
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="Health101 API",
     description="Telemedicine + Digital Pharmacy Backend",
     version="0.1.0",
     debug=True          # Set to False in production
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],                    
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Rate limiting global (for scale)
@@ -34,6 +46,9 @@ app.include_router(pharmacy_router)
 app.include_router(product_router)
 app.include_router(order_router)  
 app.include_router(cart_router)
+app.include_router(admin_doctor_router)
+app.include_router(admin_pharmacy_router)
+app.include_router(admin_product_router)
 
 @app.on_event("startup")
 async def startup_event():
