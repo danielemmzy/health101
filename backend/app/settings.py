@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     CELERY_RESULT_BACKEND: Optional[str] = None
 
     BACKEND_CORS_ORIGINS: List[str] = Field(default_factory=list)
+    EMAIL_HOST_USER: str = Field(..., env="EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD: SecretStr = Field(..., env="EMAIL_HOST_PASSWORD")
+    CELERY_BROKER_URL: str = Field(..., env="CELERY_BROKER_URL")
+    CELERY_RESULT_BACKEND: str = Field(..., env="CELERY_RESULT_BACKEND")
 
     model_config = SettingsConfigDict(
         env_file=".env",

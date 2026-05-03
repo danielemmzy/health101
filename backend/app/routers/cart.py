@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from app.crud.cart import add_to_cart, get_cart, clear_cart, apply_coupon
+from app.crud.cart import add_to_cart, get_cart, clear_cart, apply_coupon, get_cart_count
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.user import User
@@ -49,3 +49,24 @@ async def clear_user_cart(current_user: User = Depends(get_current_user)):
 async def apply_coupon_endpoint(coupon: CouponApply, current_user: User = Depends(get_current_user), db = Depends(get_db)):
     result = await apply_coupon(db, current_user.id, coupon.code)
     return result
+
+
+@router.get("/count")
+async def get_cart_count_endpoint(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    count = await get_cart_count(db, current_user.id)
+    return {"count": count}
+
+@router.post("/add")
+async def add_item_to_cart(
+    product_id: int,
+    quantity: int = 1,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    item = await add_to_cart(db, current_user.id, product_id, quantity)
+    if not item:
+        raise HTTPException(400, "Failed to add to cart")
+    return {"message": "Added to cart", "count": await get_cart_count(db, current_user.id)}

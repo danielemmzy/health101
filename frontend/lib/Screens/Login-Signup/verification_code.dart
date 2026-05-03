@@ -1,26 +1,34 @@
-// screens/verification_register.dart
+// lib/Screens/Login-Signup/verification_register.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:health101/Screens/Login-Signup/enable_location.dart';
 import 'package:health101/Screens/Views/Homepage.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
 import 'dart:async';
+import 'package:dio/dio.dart';
 
+import '../../features/auth/providers/auth_provider.dart';
 
-class VerificationRegisterScreen extends StatefulWidget {
-  const VerificationRegisterScreen({super.key});
+class VerificationRegisterScreen extends ConsumerStatefulWidget {
+  final String email;
+
+  const VerificationRegisterScreen({super.key, required this.email});
 
   @override
-  State<VerificationRegisterScreen> createState() => _VerificationRegisterScreenState();
+  ConsumerState<VerificationRegisterScreen> createState() => _VerificationRegisterScreenState();
 }
 
-class _VerificationRegisterScreenState extends State<VerificationRegisterScreen> {
+class _VerificationRegisterScreenState extends ConsumerState<VerificationRegisterScreen> {
   late Timer _timer;
-  int _secondsRemaining = 4 * 60;
+  int _secondsRemaining = 300; // 5 minutes
   bool _canResend = false;
-  final List<TextEditingController> _controllers = List.generate(4, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
+
+  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+
+  String _enteredCode = "";
 
   @override
   void initState() {
@@ -31,6 +39,7 @@ class _VerificationRegisterScreenState extends State<VerificationRegisterScreen>
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
       setState(() {
         if (_secondsRemaining > 0) {
           _secondsRemaining--;
@@ -42,21 +51,95 @@ class _VerificationRegisterScreenState extends State<VerificationRegisterScreen>
     });
   }
 
-  void _resendCode() {
+  Future<void> _resendCode() async {
+    if (!mounted) return;
+
     setState(() {
-      _secondsRemaining = 4 * 60;
+      _secondsRemaining = 300;
       _canResend = false;
-      for (var c in _controllers) c.clear();
+      _enteredCode = "";
+      for (var c in _controllers) {
+        c.clear();
+      }
       _focusNodes[0].requestFocus();
     });
     _startTimer();
+
+    try {
+      await Dio().post(
+        'http://127.0.0.1:8000/auth/send-verification-code',
+        data: {'email': widget.email},
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Verification code resent")),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to resend code")),
+        );
+      }
+    }
+  }
+
+  Future<void> _verifyCode() async {
+    _enteredCode = _controllers.map((c) => c.text).join();
+
+    if (_enteredCode.length != 6) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please enter full 6-digit code")),
+        );
+      }
+      return;
+    }
+
+    try {
+      await Dio().post(
+        'http://127.0.0.1:8000/auth/verify-code',
+        data: {
+          'email': widget.email,
+          'code': _enteredCode,
+        },
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Verification successful!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          PageTransition(
+            type: PageTransitionType.rightToLeft,
+            child: const EnableLocation(),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Invalid or expired code")),
+        );
+      }
+    }
   }
 
   @override
   void dispose() {
     _timer.cancel();
-    for (var c in _controllers) c.dispose();
-    for (var f in _focusNodes) f.dispose();
+    for (var c in _controllers) {
+      c.dispose();
+    }
+    for (var f in _focusNodes) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -74,30 +157,26 @@ class _VerificationRegisterScreenState extends State<VerificationRegisterScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Title
               Text(
                 "Did you receive the code?",
                 style: GoogleFonts.poppins(fontSize: 20.sp, fontWeight: FontWeight.w600),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 1.5.h),
-
-              // Subtitle
               Text(
-                "Enter the 4-digit code sent to your phone or email",
+                "Enter the 6-digit code sent to ${widget.email}",
                 style: GoogleFonts.poppins(fontSize: 14.sp, color: Colors.black54),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 5.h),
 
-              // OTP Fields
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(4, (i) => _buildOtpBox(i)),
+                children: List.generate(6, (i) => _buildOtpBox(i)),
               ),
+
               SizedBox(height: 5.h),
 
-              // Timer
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -106,29 +185,31 @@ class _VerificationRegisterScreenState extends State<VerificationRegisterScreen>
                   _buildTimerBox(_seconds, 'Seconds'),
                 ],
               ),
+
               SizedBox(height: 6.h),
 
-              // Verify Button
               SizedBox(
                 width: 88.w,
                 height: 6.h,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      PageTransition(type: PageTransitionType.rightToLeft, child: EnableLocation()),
-                    );
-                  },
+                  onPressed: _verifyCode,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF339CFF),
+                    backgroundColor: const Color(0xFF339CFF),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
-                  child: Text("Verify", style: GoogleFonts.poppins(fontSize: 17.sp, color: Colors.white, fontWeight: FontWeight.w500)),
+                  child: Text(
+                    "Verify",
+                    style: GoogleFonts.poppins(
+                      fontSize: 17.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
               ),
+
               SizedBox(height: 3.h),
 
-              // Resend
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -139,7 +220,7 @@ class _VerificationRegisterScreenState extends State<VerificationRegisterScreen>
                       "Resend",
                       style: GoogleFonts.poppins(
                         fontSize: 14.sp,
-                        color: _canResend ? Color(0xFF339CFF) : Colors.grey,
+                        color: _canResend ? const Color(0xFF339CFF) : Colors.grey,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -155,13 +236,13 @@ class _VerificationRegisterScreenState extends State<VerificationRegisterScreen>
 
   Widget _buildOtpBox(int index) {
     return SizedBox(
-      width: 16.w,
-      height: 16.w,
+      width: 14.w,
+      height: 14.w,
       child: Container(
         decoration: BoxDecoration(
-          color: Color(0xFFF5F5F5),
+          color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Color(0xFFE0E0E0)),
+          border: Border.all(color: const Color(0xFFE0E0E0)),
         ),
         child: TextField(
           controller: _controllers[index],
@@ -169,14 +250,14 @@ class _VerificationRegisterScreenState extends State<VerificationRegisterScreen>
           keyboardType: TextInputType.number,
           textAlign: TextAlign.center,
           maxLength: 1,
-          style: GoogleFonts.inter(fontSize: 20.sp, fontWeight: FontWeight.bold),
-          decoration: InputDecoration(
+          style: GoogleFonts.inter(fontSize: 22.sp, fontWeight: FontWeight.bold),
+          decoration: const InputDecoration(
             border: InputBorder.none,
             counterText: '',
             contentPadding: EdgeInsets.zero,
           ),
           onChanged: (value) {
-            if (value.length == 1 && index < 3) {
+            if (value.length == 1 && index < 5) {
               _focusNodes[index + 1].requestFocus();
             } else if (value.isEmpty && index > 0) {
               _focusNodes[index - 1].requestFocus();
@@ -195,13 +276,20 @@ class _VerificationRegisterScreenState extends State<VerificationRegisterScreen>
           height: 14.h,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: Color(0xFFE5EDF4),
+            color: const Color(0xFFE5EDF4),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Text(value, style: GoogleFonts.lexend(fontSize: 24.sp, fontWeight: FontWeight.w700, color: Color(0xFF0C141C))),
+          child: Text(
+            value,
+            style: GoogleFonts.lexend(
+              fontSize: 24.sp,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF0C141C),
+            ),
+          ),
         ),
         SizedBox(height: 1.h),
-        Text(label, style: GoogleFonts.lexend(fontSize: 13.sp, color: Color(0xFF0C141C))),
+        Text(label, style: GoogleFonts.lexend(fontSize: 13.sp, color: const Color(0xFF0C141C))),
       ],
     );
   }

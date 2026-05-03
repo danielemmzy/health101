@@ -7,7 +7,7 @@ from app.routers.auth import router as auth_router
 from slowapi import Limiter
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
-from app.celery import app as celery_app
+from app.celery import celery_app
 from app.routers.consultation import router as consultation_router
 from app.routers.doctor import router as doctor_router
 from app.routers.pharmacy import router as pharmacy_router

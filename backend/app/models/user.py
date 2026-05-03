@@ -25,7 +25,7 @@ class User(Base):
     location: Mapped[dict | None] = mapped_column(
         JSON, nullable=True
     )  # {"lat": float, "lon": float} or null
-    is_active: Mapped[bool] = mapped_column(default=True)
+    is_active: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
     # Relationships
@@ -53,6 +53,13 @@ class User(Base):
         
     orders = relationship(
         "Order",
+        back_populates="user",
+        cascade="all, delete-orphan",
+        passive_deletes=True
+    )
+
+    cart_items = relationship(
+        "CartItem",
         back_populates="user",
         cascade="all, delete-orphan",
         passive_deletes=True

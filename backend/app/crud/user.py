@@ -1,8 +1,14 @@
+import random
+
+from app.settings import settings
+from app.utils.email import send_verification_email
+from app.celery import send_verification_email_task
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
 from app.models.user import User, UserRole
 from app.utils.security import hash_password, verify_password
 from sqlalchemy.exc import IntegrityError
+from redis.asyncio import Redis
 
 
 async def create_user(
@@ -12,7 +18,7 @@ async def create_user(
     full_name: str | None = None,
     role: UserRole = UserRole.PATIENT,
     location: dict | None = None,
-    is_active: bool = True,
+    is_active: bool = False,
 ):
     try:
         hashed_pw = hash_password(password)
@@ -72,3 +78,11 @@ async def deactivate_user(db: AsyncSession, user_id: int):
     result = await db.execute(stmt)
     await db.commit()
     return result.scalar_one_or_none()
+
+
+async def generate_and_send_code(email: str):
+    print("🔥 generate_and_send_code called")
+    code = "".join(random.choices("0123456789", k=6))
+    redis = Redis.from_url(settings.REDIS_URL)
+    await redis.setex(f"verify:{email}", 300, code)
+    send_verification_email_task.delay(email, code)
