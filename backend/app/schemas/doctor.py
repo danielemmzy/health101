@@ -10,6 +10,7 @@ class DoctorRegister(BaseModel):
     bio: Optional[str] = None
     location: Optional[Dict[str, float]] = None
     experience_years: int = 0
+    is_verified: bool = False
 
     @field_validator("password")
     @classmethod

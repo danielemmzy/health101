@@ -35,6 +35,10 @@ async def get_product_by_id(db: AsyncSession, product_id: int):
     product = result.scalar_one_or_none()
     return product
 
+async def get_all_products_crud(db: AsyncSession, skip: int = 0, limit: int = 50):
+    stmt = select(Product).offset(skip).limit(limit)
+    result = await db.execute(stmt)
+    return result.scalars().all()
 
 async def get_products_by_pharmacy(db: AsyncSession, pharmacy_id: int, skip: int = 0, limit: int = 20):
     stmt = select(Product).where(

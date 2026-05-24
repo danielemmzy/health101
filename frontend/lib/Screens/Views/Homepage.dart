@@ -16,16 +16,25 @@ class Homepage extends StatefulWidget {
   State<Homepage> createState() => _HomepageState();
 }
 
+// Global key so other screens can access Homepage state
+final GlobalKey<_HomepageState> homepageKey = GlobalKey<_HomepageState>();
+
 class _HomepageState extends State<Homepage> {
   int page = 0;
 
-  final List<Widget> pages = [
-    const Dashboard(),
-    const message_tab_all(),
-    const ScheduleScreen(),
-    const AllProductsScreen(),
-    const MoreView(),
-  ];
+  late final List<Widget> pages;
+
+  @override
+  void initState() {
+    super.initState();
+    pages = [
+      const Dashboard(),
+      const message_tab_all(),
+      const ScheduleScreen(),
+      const AllProductsScreen(),          
+      const MoreView(),
+    ];
+  }
 
   final List<IconData> icons = [
     Icons.home,
@@ -53,16 +62,12 @@ class _HomepageState extends State<Homepage> {
         tabBuilder: (index, isActive) {
           final color = isActive ? const Color(0xFF339CFF) : Colors.grey.shade600;
           return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0), // Better vertical spacing
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  icons[index],
-                  size: 23, // 1px smaller than before
-                  color: color,
-                ),
-                const SizedBox(height: 3), // Tighter label spacing
+                Icon(icons[index], size: 23, color: color),
+                const SizedBox(height: 3),
                 Text(
                   labels[index],
                   style: TextStyle(
@@ -77,7 +82,7 @@ class _HomepageState extends State<Homepage> {
         },
         activeIndex: page,
         gapLocation: GapLocation.none,
-        height: 78, // Slightly shorter for elegance
+        height: 78,
         splashSpeedInMilliseconds: 300,
         onTap: (index) => setState(() => page = index),
         backgroundColor: Colors.white,
@@ -89,7 +94,6 @@ class _HomepageState extends State<Homepage> {
           blurRadius: 12,
           offset: Offset(0, -3),
         ),
-        // Add safe area padding
       ),
     );
   }

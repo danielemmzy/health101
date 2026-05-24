@@ -10,6 +10,7 @@ from redis.asyncio import Redis
 from typing import Dict, List, Optional
 from fastapi import HTTPException
 import logging
+from app.models.user import User
 
 redis = Redis.from_url(settings.REDIS_URL or "redis://localhost:6379/0")
 logger = logging.getLogger(__name__)
@@ -132,7 +133,6 @@ async def create_consultation(
 async def get_consultation(db: AsyncSession, consultation_id: int) -> Consultation:
     """
     Fetch a single consultation by ID.
-    Raises HTTPException if not found or on DB error.
     """
     try:
         stmt = select(Consultation).where(Consultation.id == consultation_id)
@@ -146,36 +146,37 @@ async def get_consultation(db: AsyncSession, consultation_id: int) -> Consultati
                 detail=f"Consultation with ID {consultation_id} not found"
             )
 
-        logger.debug(f"Consultation retrieved: ID {consultation_id}, user_id {consultation.user_id}")
         return consultation
 
     except SQLAlchemyError as e:
         logger.error(f"Database error fetching consultation {consultation_id}: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail="Database error while fetching consultation"
-        ) from e
+        raise HTTPException(status_code=500, detail="Database error while fetching consultation") from e
 
     except Exception as e:
         logger.exception(f"Unexpected error fetching consultation {consultation_id}")
-        raise HTTPException(
-            status_code=500,
-            detail="Unexpected error while fetching consultation"
-        ) from e
+        raise HTTPException(status_code=500, detail="Unexpected error while fetching consultation") from e
+
 
 async def get_user_consultations(
     db: AsyncSession,
     user_id: int,
     skip: int = 0,
     limit: int = 10
-) -> list[Consultation]:
+):
     """
-    Fetch paginated list of consultations for a user.
-    Logs count and returns empty list if none found (no error).
+    Fetch user's consultations with doctor details by joining through User table.
     """
     try:
         stmt = (
-            select(Consultation)
+            select(
+                Consultation,
+                User.full_name.label("doctor_name"),      # ← Get name from User
+                User.id.label("doctor_user_id"),
+                Doctor.specialty.label("doctor_specialty"),
+                Doctor.id.label("doctor_id"),
+            )
+            .join(Doctor, Consultation.doctor_id == Doctor.id)
+            .join(User, Doctor.user_id == User.id)       # ← Join User to get full_name
             .where(Consultation.user_id == user_id)
             .order_by(Consultation.scheduled_time.desc())
             .offset(skip)
@@ -183,33 +184,39 @@ async def get_user_consultations(
         )
 
         result = await db.execute(stmt)
-        consultations = result.scalars().all()
+        rows = result.all()
 
-        logger.info(
-            f"Retrieved {len(consultations)} consultations for user {user_id} "
-            f"(skip={skip}, limit={limit})"
-        )
+        consultations = []
+        for row in rows:
+            cons = row[0]
 
-        if not consultations:
-            logger.debug(f"No consultations found for user {user_id}")
-            # No exception — empty list is valid
-            return []
+            cons_dict = {
+                "id": cons.id,
+                "doctor_id": row.doctor_id,
+                "user_id": cons.user_id,
+                "status": cons.status.value if hasattr(cons.status, "value") else cons.status,
+                "scheduled_time": cons.scheduled_time,
+                "duration_minutes": cons.duration_minutes,
+                "notes": cons.notes,
+                "created_at": cons.created_at,
+                "doctor": {
+                    "id": row.doctor_id,
+                    "name": row.doctor_name,               # ← This will now work
+                    "specialty": row.doctor_specialty,
+                }
+            }
+            consultations.append(cons_dict)
 
+        logger.info(f"Retrieved {len(consultations)} consultations for user {user_id}")
         return consultations
 
     except SQLAlchemyError as e:
-        logger.error(f"Database error fetching consultations for user {user_id}: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500,
-            detail="Database error while fetching your consultations"
-        ) from e
+        logger.error(f"Database error fetching consultations for user {user_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Database error while fetching consultations") from e
 
     except Exception as e:
         logger.exception(f"Unexpected error fetching consultations for user {user_id}")
-        raise HTTPException(
-            status_code=500,
-            detail="Unexpected error while fetching your consultations"
-        ) from e
+        raise HTTPException(status_code=500, detail="Unexpected error") from e
 
 async def update_consultation_status(db: AsyncSession, consultation_id: int, status: ConsultationStatus):
     stmt = update(Consultation).where(Consultation.id == consultation_id).values(status=status).returning(Consultation)

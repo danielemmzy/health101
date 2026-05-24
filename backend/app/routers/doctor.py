@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,12 +10,14 @@ from app.models.doctor import Doctor
 from app.models.user import UserRole
 from fastapi import APIRouter, Depends, HTTPException, status, Body
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from datetime import datetime, timezone
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.user import User, UserRole
-from app.schemas.consultation import ConsultationOut
+from app.schemas.consultation import ConsultationOut, DoctorOut
 from app.crud.consultation import (
+    list_available_doctors,
     update_consultation_status,
     get_doctor_by_user_id
 )
@@ -38,7 +40,9 @@ async def register_doctor(
         email=doctor_data.email,
         password=doctor_data.password,
         full_name=doctor_data.full_name,
-        role=UserRole.DOCTOR
+        location=doctor_data.location,
+        role=UserRole.DOCTOR,
+        is_active=False  # Doctors need admin verification
     )
     if not user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -57,10 +61,6 @@ async def register_doctor(
     await db.refresh(user)  # optional: refresh user if needed
 
     return user
-
-
-
-router = APIRouter(prefix="/doctors", tags=["doctors"])
 
 
 @router.get("/consultations", response_model=list[ConsultationOut])
@@ -153,3 +153,54 @@ async def doctor_update_status(
         raise HTTPException(status_code=404, detail="Consultation not found")
 
     return {"message": f"Status updated to {status.value}", "consultation": consultation}
+
+
+@router.get("/top", response_model=List[dict])
+async def get_top_doctors(
+    limit: int = 10,
+    db: AsyncSession = Depends(get_db)
+):
+    stmt = select(
+        Doctor.id,
+        User.full_name.label("name"),           
+        Doctor.specialty,
+        Doctor.bio,
+        Doctor.experience_years,
+        Doctor.rating,
+        Doctor.location,
+        Doctor.is_available,
+        Doctor.availability_slots
+    ).join(User, Doctor.user_id == User.id)\
+     .where(Doctor.is_verified == True)\
+     .order_by(Doctor.rating.desc(), Doctor.experience_years.desc())\
+     .limit(limit)
+
+    result = await db.execute(stmt)
+    doctors = [dict(row._mapping) for row in result]
+    return doctors
+
+@router.get("/{doctor_id}", response_model=dict)
+async def get_doctor_detail(
+    doctor_id: int,
+    db: AsyncSession = Depends(get_db)
+):
+    stmt = select(Doctor, User).join(User, Doctor.user_id == User.id).where(Doctor.id == doctor_id)
+    result = await db.execute(stmt)
+    row = result.first()
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Doctor not found")
+
+    doctor, user = row
+
+    return {
+        "id": doctor.id,
+        "name": user.full_name,
+        "specialty": doctor.specialty,
+        "bio": doctor.bio,
+        "experience_years": doctor.experience_years,
+        "rating": doctor.rating,
+        "location": doctor.location,
+        "is_verified": doctor.is_verified,
+        "image": doctor.image_url or "assets/images/male-doctor.png"
+    }

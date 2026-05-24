@@ -29,6 +29,13 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
     # Relationships
+        
+    doctor_profile = relationship(
+        "Doctor", 
+        back_populates="user", 
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
     consultations = relationship(
         "Consultation",
         back_populates="user",

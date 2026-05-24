@@ -21,6 +21,12 @@ class DoctorOut(DoctorBase):
         }
     }
 
+class DoctorInConsultation(BaseModel):
+    id: int
+    name: str
+    specialty: str
+    image_url: Optional[str] = None
+
 class ConsultationCreate(BaseModel):
     doctor_id: int
     scheduled_time: datetime
@@ -38,6 +44,7 @@ class ConsultationOut(BaseModel):
     id: int
     user_id: int
     doctor_id: int
+    doctor: DoctorInConsultation
     status: str
     scheduled_time: datetime
     duration_minutes: int

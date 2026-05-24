@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:health101/core/utilis/token_storage.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
@@ -48,8 +49,9 @@ Future<void> _handleLogin() async {
   final authState = ref.read(authStateProvider);
 
   authState.when(
-    data: (token) {
+    data: (token) async {
       if (token != null) {
+        await TokenStorage.saveToken(token);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Login successful!"),

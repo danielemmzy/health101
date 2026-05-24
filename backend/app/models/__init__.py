@@ -7,8 +7,9 @@ from .consultation import Consultation, ConsultationStatus
 from .chat_message import ChatMessage
 from .pharmacy import Pharmacy       
 from .products import Product         
-from .orders import Order  # ← Add these
+from .orders import Order  
 from .order_item import OrderItem
-from .coupon import Coupon             
+from .coupon import Coupon 
+from .cart import CartItem            
 
-__all__ = ["User", "Doctor", "Consultation", "ConsultationStatus", "ChatMessage", "Pharmacy", "Product", "Order", "OrderItem", "Coupon"]
+__all__ = ["User", "Doctor", "Consultation", "ConsultationStatus", "ChatMessage", "Pharmacy", "Product", "Order", "OrderItem", "Coupon", "CartItem"]

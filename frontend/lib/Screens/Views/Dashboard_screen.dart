@@ -1,41 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:health101/Screens/Views/all_products_screen.dart';
-import 'package:health101/Screens/Views/appointment.dart';
-import 'package:health101/Screens/Views/cart_screen.dart';
-import 'package:health101/Screens/Views/doctor_details_screen.dart';
-import 'package:health101/Screens/Views/doctor_search.dart';
-import 'package:health101/Screens/Views/featured_screen.dart';
-import 'package:health101/Screens/Views/nearby_pharmacies_screen.dart';
-import 'package:health101/Screens/Views/notification_screen.dart';
-import 'package:health101/Screens/Views/popular_products_screen.dart';
-import 'package:health101/Screens/Views/product_detailed_screen.dart';
+import 'package:health101/Models/products.dart';
 import 'package:health101/Screens/Widgets/doctorss.dart';
 import 'package:health101/Screens/Widgets/medicine_category_card.dart';
 import 'package:health101/Screens/Widgets/pharmacy_card.dart';
+
 import 'package:health101/Screens/Widgets/product_card.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:health101/features/auth/providers/cart_provider.dart';
+import 'package:health101/features/auth/providers/doctor_provider.dart';
+import 'package:health101/features/auth/providers/pharmacy_provider.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:health101/Models/products.dart';
-
-
-
+import 'package:responsive_sizer/responsive_sizer.dart';
 import '../Widgets/banner.dart';
 import '../Widgets/list_doctor1.dart';
 import '../Widgets/article.dart';
 import 'find_doctor.dart';
 import 'articlePage.dart';
+import 'all_products_screen.dart';
+import 'appointment.dart';
+import 'cart_screen.dart';
+import 'doctor_details_screen.dart';
+import 'doctor_search.dart';
+import 'featured_screen.dart';
+import 'nearby_pharmacies_screen.dart';
+import 'notification_screen.dart';
+import 'popular_products_screen.dart';
+import 'product_detailed_screen.dart';
 
-class Dashboard extends StatefulWidget {
+class Dashboard extends ConsumerStatefulWidget {
   const Dashboard({super.key});
 
   @override
-  State<Dashboard> createState() => _DashboardState();
+  ConsumerState<Dashboard> createState() => _DashboardState();
 }
 
-class _DashboardState extends State<Dashboard> {
-  int selectedServiceIndex = 0; // Tracks clicked service
-  
+class _DashboardState extends ConsumerState<Dashboard> {
+  int selectedServiceIndex = 0;
 
   final List<Map<String, dynamic>> services = [
     {"icon": Icons.child_care, "label": "Pediatrician"},
@@ -47,123 +48,133 @@ class _DashboardState extends State<Dashboard> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(cartCountProvider.notifier).fetchCartCount();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final cartCount = ref.watch(cartCountProvider);   // Real count from backend
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-  backgroundColor: Colors.white,
-  elevation: 0,
-  toolbarHeight: 100,
-  automaticallyImplyLeading: false, // Removes default back button
-  title: Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      // LEFT: LOGO + TITLE
-      Row(
-        children: [
-          Padding(
-            padding: EdgeInsets.only(top: 2.h),
-            child: Image.asset(
-              "assets/images/logo-green.png",
-              height: 38,
-              fit: BoxFit.contain,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 100,
+        automaticallyImplyLeading: false,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Logo + Title
+            Row(
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(top: 2.h),
+                  child: Image.asset(
+                    "assets/images/logo-green.png",
+                    height: 38,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
             ),
-          ),
-          SizedBox(width: 12),
-          
-        ],
-      ),
 
-      // RIGHT: BELL + CART WITH BADGES
-      Row(
-        children: [
-          // NOTIFICATION BELL WITH RED BADGE
-          Padding(
-            padding: EdgeInsets.only(top: 2.h, right: 4.w),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  PageTransition(
-                    type: PageTransitionType.rightToLeft,
-                    child: NotificationScreen(),
-                  ),
-                );
-              },
-              child: Stack(
-                children: [
-                  Image.asset(
-                    "assets/images/bell.png",
-                    width: 26,
-                    height: 26,
-                  ),
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      padding: EdgeInsets.all(2),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      constraints: BoxConstraints(minWidth: 16, minHeight: 16),
-                      child: Text(
-                        "3", // Change this dynamically later
-                        style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
+            // Notification + Cart
+            Row(
+              children: [
+                // Notification Bell (static for now)
+                Padding(
+                  padding: EdgeInsets.only(top: 2.h, right: 4.w),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        PageTransition(
+                          type: PageTransitionType.rightToLeft,
+                          child:  NotificationScreen(),
+                        ),
+                      );
+                    },
+                    child: Stack(
+                      children: [
+                        Image.asset("assets/images/bell.png", width: 26, height: 26),
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                            child: const Text(
+                              "3",
+                              style: TextStyle(color: Colors.white, fontSize: 10),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
+                ),
 
-          // SHOPPING CART WITH RED BADGE
-          Padding(
-            padding: EdgeInsets.only(top: 2.h),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  PageTransition(
-                    type: PageTransitionType.rightToLeft,
-                    child: CartScreen(),
-                  ),
-                );
-              },
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Icon(Icons.shopping_cart_outlined, size: 28, color: Color(0xFF333333)),
-                  Positioned(
-                    right: -6,
-                    top: -6,
-                    child: Container(
-                      padding: EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      constraints: BoxConstraints(minWidth: 18, minHeight: 18),
-                      child: Text(
-                        "7", // Change dynamically
-                        style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
+                // Dynamic Cart Badge
+                Padding(
+                  padding: EdgeInsets.only(top: 2.h),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        PageTransition(
+                          type: PageTransitionType.rightToLeft,
+                          child: const CartScreen(),
+                        ),
+                      );
+                    },
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Icon(Icons.shopping_cart_outlined, size: 28, color: Color(0xFF333333)),
+                        if (cartCount > 0)
+                          Positioned(
+                            right: -6,
+                            top: -6,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                              child: Text(
+                                cartCount.toString(),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ],
-  ),
-),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 5.w),
         child: Column(
@@ -187,10 +198,7 @@ class _DashboardState extends State<Dashboard> {
                 ),
                 decoration: InputDecoration(
                   hintText: "Search pharmacies, drugs, prescription...",
-                  hintStyle: TextStyle(
-                    fontSize: 15.sp,
-                    color: Colors.grey[600],
-                  ),
+                  hintStyle: TextStyle(fontSize: 15.sp, color: Colors.grey[600]),
                   prefixIcon: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Image.asset(
@@ -207,7 +215,7 @@ class _DashboardState extends State<Dashboard> {
             ),
             SizedBox(height: 3.h),
 
-            // Category Icons
+           // Category Icons
             SizedBox(height: 3.h),
 
             // Banner
@@ -257,7 +265,7 @@ class _DashboardState extends State<Dashboard> {
                 context,
                 PageTransition(
                   type: PageTransitionType.rightToLeft,
-                  child: const AllProductsScreen(),
+                  child: AllProductsScreen(),
                 ),
               );
               break;
@@ -411,140 +419,153 @@ class _DashboardState extends State<Dashboard> {
               ),
             ),
             SizedBox(height: 3.h),
-            // === NEARBY PHARMACIES SECTION ===
-            SizedBox(height: 4.h),
 
-            // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Nearby Pharmacies",
-                  style: GoogleFonts.inter(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2E2E2E),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      PageTransition(
-                        type: PageTransitionType.rightToLeft,
-                        child: NearbyPharmaciesScreen(),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    "See all",
-                    style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      color: const Color(0xFF339CFF),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 2.h),
+// === NEARBY PHARMACIES SECTION ===
+SizedBox(height: 4.h),
 
-            // Horizontal Scroll
-            SizedBox(
-              height: 230,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  PharmacyCard(
-                    imagePath: "assets/images/pharm1.png",
-                    name: "Health101 Pharmacy",
-                    address: "123 Main St, Anytown",
-                    rating: 4.5,
-                    openUntil: "9 PM",
-                  ),
-                  PharmacyCard(
-                    imagePath: "assets/images/pharm2.png",
-                    name: "Community Pharmacy",
-                    address: "456 Oak Ave, Anytown",
-                    rating: 4.2,
-                    openUntil: "8 PM",
-                  ),
-                  PharmacyCard(
-                    imagePath: "assets/images/pharm3.png",
-                    name: "Wellness Pharmacy",
-                    address: "789 Pine Ln, Anytown",
-                    rating: 4.8,
-                    openUntil: "10 PM",
-                  ),
-                ],
-              ),
+Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Text(
+      "Nearby Pharmacies",
+      style: GoogleFonts.inter(
+        fontSize: 16.sp,
+        fontWeight: FontWeight.w600,
+        color: const Color(0xFF2E2E2E),
+      ),
+    ),
+    GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          PageTransition(
+            type: PageTransitionType.rightToLeft,
+            child: NearbyPharmaciesScreen(),
+          ),
+        );
+      },
+      child: Text(
+        "See all",
+        style: GoogleFonts.inter(
+          fontSize: 14.sp,
+          color: const Color(0xFF339CFF),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
+  ],
+),
+SizedBox(height: 2.h),
+
+// Dynamic from Backend
+ref.watch(nearbyPharmaciesProvider).when(
+  data: (pharmacies) {
+    if (pharmacies.isEmpty) {
+      return const Center(child: Text("No pharmacies found nearby"));
+    }
+
+    return SizedBox(
+      height: 230,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: pharmacies.length,
+        itemBuilder: (context, index) {
+          final p = pharmacies[index];
+          return Padding(
+            padding: EdgeInsets.only(right: 4.w),
+            child: PharmacyCard(
+              imagePath: p["image"] ?? "assets/images/pharm1.png",
+              name: p["name"] ?? "Unknown Pharmacy",
+              address: p["address"] ?? "No address",
+              rating: (p["rating"] ?? 4.5).toDouble(),
+              openUntil: p["opening_hours"] ?? "9 PM",
             ),
+          );
+        },
+      ),
+    );
+  },
+  loading: () => const Center(child: CircularProgressIndicator()),
+  error: (error, stack) => Center(
+    child: Text("Failed to load pharmacies\n$error"),
+  ),
+),
             SizedBox(height: 4.h),
              // Top Doctors List
              Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Top Doctors",
-                  style: GoogleFonts.inter(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2E2E2E),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      PageTransition(
-                        type: PageTransitionType.rightToLeft,
-                        child: DoctorSearch(),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    "See all",
-                    style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      color: const Color(0xFF339CFF),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 2.h),
-SizedBox(
-  height: 200,
-  child: ListView.builder(
-    scrollDirection: Axis.horizontal,
-    itemCount: doctors.length,
-    itemBuilder: (context, index) {
-      final doc = doctors[index];
-      return Padding(
-        padding: EdgeInsets.only(right: 4.w),
-        child: GestureDetector(
-          onTap: () {
-            // DYNAMIC NAVIGATION TO DOCTOR DETAILS
-            Navigator.push(
-              context,
-              PageTransition(
-                type: PageTransitionType.bottomToTop,
-                child: DoctorDetails(doctor: doc),
-              ),
-            );
-          },
-          child: list_doctor1(
-            image: doc["image"]!,
-            maintext: doc["name"]!,
-            subtext: doc["specialty"]!,
-            numRating: doc["rating"]!,
-            distance: doc["distance"]!,
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Text(
+      "Top Doctors",
+      style: GoogleFonts.inter(
+        fontSize: 16.sp,
+        fontWeight: FontWeight.w600,
+        color: const Color(0xFF2E2E2E),
+      ),
+    ),
+    GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          PageTransition(
+            type: PageTransitionType.rightToLeft,
+            child: DoctorSearch(),
           ),
+        );
+      },
+      child: Text(
+        "See all",
+        style: GoogleFonts.inter(
+          fontSize: 14.sp,
+          color: const Color(0xFF339CFF),
+          fontWeight: FontWeight.w600,
         ),
-      );
-    },
-  ),
+      ),
+    ),
+  ],
+),
+SizedBox(height: 2.h),
+
+// Dynamic from Backend
+ref.watch(topDoctorsProvider).when(
+  data: (doctors) {
+    if (doctors.isEmpty) {
+      return const Center(child: Text("No doctors available"));
+    }
+    return SizedBox(
+      height: 200,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: doctors.length,
+        itemBuilder: (context, index) {
+          final doc = doctors[index];
+          return Padding(
+            padding: EdgeInsets.only(right: 4.w),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  PageTransition(
+                    type: PageTransitionType.bottomToTop,
+                    child: DoctorDetails(doctorId: doc["id"]),
+                  ),
+                );
+              },
+              child: list_doctor1(
+                image: doc["image"] ?? "assets/images/male-doctor.png",
+                maintext: doc["name"] ?? "Dr. Unknown",
+                subtext: doc["specialty"] ?? "Specialist",
+                numRating: (doc["rating"] ?? 4.5).toString(),
+                distance: doc["distance"] ?? "1km Away",
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  },
+  loading: () => const Center(child: CircularProgressIndicator()),
+  error: (error, stack) => Center(child: Text("Failed to load doctors: $error")),
 ),
 
 SizedBox(height: 3.h),
@@ -761,6 +782,7 @@ SizedBox(height: 4.h),
                   "The 25 Healthiest Fruits You Can Eat,\nAccording to a Nutritionist",
             ),
             SizedBox(height: 3.h),
+
           ],
         ),
       ),
