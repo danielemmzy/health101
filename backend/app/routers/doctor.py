@@ -160,23 +160,27 @@ async def get_top_doctors(
     limit: int = 10,
     db: AsyncSession = Depends(get_db)
 ):
-    stmt = select(
-        Doctor.id,
-        User.full_name.label("name"),           
-        Doctor.specialty,
-        Doctor.bio,
-        Doctor.experience_years,
-        Doctor.rating,
-        Doctor.location,
-        Doctor.is_available,
-        Doctor.availability_slots
-    ).join(User, Doctor.user_id == User.id)\
-     .where(Doctor.is_verified == True)\
-     .order_by(Doctor.rating.desc(), Doctor.experience_years.desc())\
-     .limit(limit)
+    """Return top verified doctors with full_name from User"""
+    stmt = (
+        select(
+            Doctor.id,
+            User.full_name.label("name"),           
+            Doctor.specialty,
+            Doctor.bio,
+            Doctor.experience_years,
+            Doctor.rating,
+            Doctor.location,
+            Doctor.is_available,
+        )
+        .join(User, Doctor.user_id == User.id)      
+        .where(Doctor.is_verified == True)
+        .order_by(Doctor.rating.desc(), Doctor.experience_years.desc())
+        .limit(limit)
+    )
 
     result = await db.execute(stmt)
     doctors = [dict(row._mapping) for row in result]
+
     return doctors
 
 @router.get("/{doctor_id}", response_model=dict)

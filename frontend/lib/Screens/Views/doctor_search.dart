@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:health101/features/auth/providers/consultation_provider.dart';
+import 'package:health101/features/auth/providers/doctor_provider.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
@@ -21,7 +21,7 @@ class _DoctorSearchState extends ConsumerState<DoctorSearch> {
 
   @override
   Widget build(BuildContext context) {
-    final doctorsAsync = ref.watch(availableDoctorsProvider);
+    final doctorsAsync = ref.watch(topDoctorsProvider);   // ← Using your actual provider
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -56,7 +56,7 @@ class _DoctorSearchState extends ConsumerState<DoctorSearch> {
             ),
           ),
 
-          // Specialty Filter Chips
+          // Specialty Filter
           SizedBox(
             height: 50,
             child: ListView.builder(
@@ -92,12 +92,12 @@ class _DoctorSearchState extends ConsumerState<DoctorSearch> {
 
           SizedBox(height: 2.h),
 
-          // Dynamic Doctor List
+          // Doctor List
           Expanded(
             child: doctorsAsync.when(
               data: (doctors) {
                 if (doctors.isEmpty) {
-                  return const Center(child: Text("No doctors available at the moment"));
+                  return const Center(child: Text("No doctors available"));
                 }
 
                 return ListView.builder(
@@ -105,6 +105,12 @@ class _DoctorSearchState extends ConsumerState<DoctorSearch> {
                   itemCount: doctors.length,
                   itemBuilder: (context, index) {
                     final doc = doctors[index];
+
+                    // Safe name extraction
+                    final doctorName = doc['name'] ?? 
+                                       doc['full_name'] ?? 
+                                       doc['fullName'] ?? 
+                                       "Dr. Unknown";
 
                     return GestureDetector(
                       onTap: () {
@@ -117,10 +123,10 @@ class _DoctorSearchState extends ConsumerState<DoctorSearch> {
                         );
                       },
                       child: doctorList(
-                        image: doc["image_url"] ?? "assets/images/male-doctor.png",
-                        maintext: doc["name"] ?? "Dr. Unknown",
+                        image: doc["image_url"] ?? doc["image"] ?? "assets/images/male-doctor.png",
+                        maintext: doctorName,
                         subtext: doc["specialty"] ?? "Specialist",
-                        numRating: doc["rating"]?.toString() ?? "4.5",
+                        numRating: (doc["rating"] ?? 4.5).toString(),
                         distance: doc["distance"] ?? "1km Away",
                       ),
                     );
@@ -128,9 +134,7 @@ class _DoctorSearchState extends ConsumerState<DoctorSearch> {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(
-                child: Text("Failed to load doctors: $error"),
-              ),
+              error: (error, stack) => Center(child: Text("Failed to load doctors: $error")),
             ),
           ),
         ],
