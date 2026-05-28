@@ -181,7 +181,10 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                               context,
                               PageTransition(
                                 type: PageTransitionType.bottomToTop,
-                                child: chat_screen(doctorData: doctor),
+                                child: chat_screen(
+                                consultationId: 0,           // 0 = new chat (no consultation yet)
+                                doctorData: doctor,
+                              ),
                               ),
                             );
                           },

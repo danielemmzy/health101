@@ -138,6 +138,21 @@ class ApiService {
     final response = await dio.get('/doctors/$doctorId');
     return response.data as Map<String, dynamic>;
   }
+
+    // ==================== CHAT ====================
+
+  Future<List<dynamic>> getChatHistory(int consultationId, {int skip = 0, int limit = 50}) async {
+    final response = await dio.get(
+      '/consultations/$consultationId/messages',
+      queryParameters: {'skip': skip, 'limit': limit},
+    );
+    return response.data as List<dynamic>;
+  }
+
+  // For WebSocket (we'll handle connection separately)
+  String getChatWebSocketUrl(int consultationId) {
+    return 'ws://127.0.0.1:8000/chat/$consultationId';
+  }
 }
 
 

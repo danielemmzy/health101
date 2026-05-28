@@ -100,7 +100,10 @@ class AppointmentDetailsScreen extends StatelessWidget {
                     context,
                     PageTransition(
                       type: PageTransitionType.bottomToTop,
-                      child: chat_screen(doctorData: doctorChatData),
+                      child: chat_screen(
+                                consultationId: 0,           // 0 = new chat (no consultation yet)
+                                doctorData: doctor,
+                              ),
                     ),
                   );
                 },

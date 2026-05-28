@@ -188,23 +188,34 @@ async def get_doctor_detail(
     doctor_id: int,
     db: AsyncSession = Depends(get_db)
 ):
-    stmt = select(Doctor, User).join(User, Doctor.user_id == User.id).where(Doctor.id == doctor_id)
+    stmt = (
+        select(
+            Doctor.id,
+            User.full_name.label("name"),
+            Doctor.specialty,
+            Doctor.bio,
+            Doctor.experience_years,
+            Doctor.rating,
+            Doctor.location,
+            Doctor.is_verified,
+        )
+        .join(User, Doctor.user_id == User.id)
+        .where(Doctor.id == doctor_id)
+    )
+
     result = await db.execute(stmt)
     row = result.first()
 
     if not row:
         raise HTTPException(status_code=404, detail="Doctor not found")
 
-    doctor, user = row
-
     return {
-        "id": doctor.id,
-        "name": user.full_name,
-        "specialty": doctor.specialty,
-        "bio": doctor.bio,
-        "experience_years": doctor.experience_years,
-        "rating": doctor.rating,
-        "location": doctor.location,
-        "is_verified": doctor.is_verified,
-        "image": doctor.image_url or "assets/images/male-doctor.png"
+        "id": row.id,
+        "name": row.name,
+        "specialty": row.specialty,
+        "bio": row.bio,
+        "experience_years": row.experience_years,
+        "rating": row.rating,
+        "location": row.location,
+        "is_verified": row.is_verified,
     }

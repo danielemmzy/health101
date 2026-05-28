@@ -65,6 +65,7 @@ dev_dependencies:
   flutter_riverpod: ^2.5.1
   shared_preferences: ^2.3.0
   jwt_decoder: ^2.0.1
+  web_socket_channel: ^3.0.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

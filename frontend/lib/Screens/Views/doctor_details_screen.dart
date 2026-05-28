@@ -43,11 +43,11 @@ class DoctorDetails extends ConsumerWidget {
                 child: Column(
                   children: [
                     doctorList(
-                      image: doctor["image_url"] ?? "assets/images/male-doctor.png",
+                      image: doctor["image_url"] ?? doctor["image"] ?? "assets/images/male-doctor.png",
                       maintext: doctor["name"] ?? "Dr. Unknown",
                       subtext: doctor["specialty"] ?? "Specialist",
                       numRating: doctor["rating"]?.toString() ?? "4.5",
-                      distance: doctor["distance"] ?? "1.2km Away",
+                      distance: "1.2km Away",
                     ),
                     const SizedBox(height: 20),
 
@@ -74,19 +74,15 @@ class DoctorDetails extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 decoration: const BoxDecoration(
                   color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -3)),
-                  ],
+                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -3))],
                 ),
                 child: Row(
                   children: [
                     // Call Button
                     GestureDetector(
                       onTap: () async {
-                        final Uri url = Uri(scheme: 'tel', path: doctor["phone"] ?? '+2348012345678');
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url);
-                        }
+                        final Uri url = Uri(scheme: 'tel', path: '+2348012345678');
+                        if (await canLaunchUrl(url)) await launchUrl(url);
                       },
                       child: Container(
                         padding: const EdgeInsets.all(14),
@@ -100,7 +96,7 @@ class DoctorDetails extends ConsumerWidget {
 
                     const SizedBox(width: 16),
 
-                    // Chat Button
+                    // Chat Button - Fixed
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
@@ -108,7 +104,10 @@ class DoctorDetails extends ConsumerWidget {
                             context,
                             PageTransition(
                               type: PageTransitionType.rightToLeft,
-                              child: chat_screen(doctorData: doctor),
+                              child: chat_screen(
+                                consultationId: 0,           // 0 = new chat (no consultation yet)
+                                doctorData: doctor,
+                              ),
                             ),
                           );
                         },
