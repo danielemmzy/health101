@@ -1,4 +1,5 @@
 from app.celery import send_verification_email_task
+from app.models.user import User
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from slowapi import Limiter
@@ -16,7 +17,7 @@ from app.utils.security import (
 from app.settings import settings
 from datetime import timedelta
 from pydantic import BaseModel
-from app.dependencies import oauth2_scheme
+from app.dependencies import get_current_user, oauth2_scheme
 import random
 from redis.asyncio import Redis
 from app.settings import settings
@@ -206,3 +207,11 @@ async def verify_code(
     await redis.delete(f"verify:{email}")
 
     return {"message": "Account verified successfully"}
+
+@router.get("/me", response_model=UserOut)
+async def get_current_user_profile(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get logged-in user's profile"""
+    return current_user

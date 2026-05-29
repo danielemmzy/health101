@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:health101/features/auth/providers/chat_provider.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:page_transition/page_transition.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:health101/core/utilis/token_storage.dart';
 
-import '../Views/Homepage.dart';
-
-class chat_screen extends StatefulWidget {
+class chat_screen extends ConsumerStatefulWidget {
   final int consultationId;
   final Map<String, dynamic> doctorData;
 
@@ -16,78 +17,157 @@ class chat_screen extends StatefulWidget {
   });
 
   @override
-  State<chat_screen> createState() => _chat_screenState();
+  ConsumerState<chat_screen> createState() => _chat_screenState();
 }
 
-class _chat_screenState extends State<chat_screen> {
+class _chat_screenState extends ConsumerState<chat_screen> {
   final TextEditingController _controller = TextEditingController();
-  final List<Map<String, dynamic>> _messages = [];
+  final ScrollController _scrollController = ScrollController();
+  WebSocketChannel? _channel;
+
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeChat();
+    });
+  }
+
+  void _initializeChat() {
+    if (_initialized) return;
+    _initialized = true;
+
+    // Safe Riverpod usage AFTER build
+    ref.invalidate(chatHistoryProvider(widget.consultationId));
+
+    _connectWebSocket();
+  }
+
+  Future<void> _connectWebSocket() async {
+    final token = await TokenStorage.getToken();
+    if (token == null) return;
+
+    _channel = WebSocketChannel.connect(
+      Uri.parse(
+        'ws://127.0.0.1:8000/consultations/chat/${widget.consultationId}?token=$token',
+      ),
+    );
+
+    _channel!.stream.listen(
+      (message) {
+        ref.invalidate(chatHistoryProvider(widget.consultationId));
+        _scrollToBottom();
+      },
+      onError: (error) => print("WebSocket Error: $error"),
+      onDone: () => print("WebSocket closed"),
+    );
+  }
+
+  void _sendMessage() {
+    final text = _controller.text.trim();
+    if (text.isEmpty) return;
+
+    _controller.clear();
+
+    _channel?.sink.add(text);
+
+    ref.invalidate(chatHistoryProvider(widget.consultationId));
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _channel?.sink.close();
+    _controller.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final chatHistoryAsync =
+        ref.watch(chatHistoryProvider(widget.consultationId));
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        leading: IconButton(
-          icon: Image.asset("assets/images/back1.png", width: 24, height: 24),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              Navigator.pushAndRemoveUntil(
-                context,
-                PageTransition(type: PageTransitionType.fade, child: const Homepage()),
-                (route) => false,
-              );
-            }
-          },
-        ),
-        title: Text(
-          widget.doctorData["name"] ?? "Doctor",
-          style: GoogleFonts.poppins(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 17.sp),
-        ),
-        centerTitle: false,
-        elevation: 0,
-        toolbarHeight: 100,
         backgroundColor: Colors.white,
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 20),
-            child: Row(
+        elevation: 1,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black87),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 18,
+              backgroundImage: NetworkImage(
+                widget.doctorData['image_url'] ??
+                    "assets/images/male-doctor.png",
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _icon("assets/images/video_call.png"),
-                SizedBox(width: 12),
-                _icon("assets/images/call.png"),
-                SizedBox(width: 12),
-                _icon("assets/images/more.png"),
+                Text(
+                  widget.doctorData['name'] ?? "Doctor",
+                  style: GoogleFonts.poppins(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  widget.doctorData['specialty'] ?? "",
+                  style: GoogleFonts.poppins(
+                    fontSize: 13.sp,
+                    color: Colors.grey,
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       body: Column(
         children: [
           Expanded(
-            child: _messages.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.chat_bubble_outline, size: 80, color: Colors.grey[300]),
-                        SizedBox(height: 16),
-                        Text("No messages yet", style: GoogleFonts.inter(fontSize: 16.sp, color: Colors.grey)),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    reverse: true,
-                    itemCount: _messages.length,
-                    itemBuilder: (context, i) {
-                      final msg = _messages[i];
-                      return _buildMessageBubble(msg["text"], msg["isUser"], msg["time"]);
-                    },
-                  ),
+            child: chatHistoryAsync.when(
+              data: (messages) => ListView.builder(
+                controller: _scrollController,
+                padding:
+                    EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                reverse: true,
+                itemCount: messages.length,
+                itemBuilder: (context, index) {
+                  final msg = messages[index];
+                  final isUser =
+                      msg['sender_name'] == "You" ||
+                      msg['sender_id'] == 14;
+
+                  return _buildMessageBubble(msg, isUser);
+                },
+              ),
+              loading: () =>
+                  const Center(child: CircularProgressIndicator()),
+              error: (_, __) =>
+                  const Center(child: Text("Failed to load messages")),
+            ),
           ),
           _buildInputField(),
         ],
@@ -95,105 +175,99 @@ class _chat_screenState extends State<chat_screen> {
     );
   }
 
-  Widget _icon(String asset) {
-    return Container(
-      padding: EdgeInsets.all(8),
-      decoration: BoxDecoration(color: const Color(0xFFF5F7FA), borderRadius: BorderRadius.circular(12)),
-      child: Image.asset(asset, width: 20, height: 20, color: const Color(0xFF339CFF)),
-    );
-  }
-
-  Widget _buildMessageBubble(String text, bool isUser, String time) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        children: [
-          if (!isUser) ...[
-            CircleAvatar(radius: 16, backgroundImage: AssetImage(widget.doctorData["image"] ?? "assets/images/male-doctor.png")),
-            SizedBox(width: 8),
-          ],
-          Flexible(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isUser ? const Color(0xFF339CFF) : const Color(0xFFF0F0F0),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(isUser ? 16 : 0),
-                  topRight: Radius.circular(isUser ? 0 : 16),
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 6, offset: Offset(0, 2))],
-              ),
-              child: Column(
-                crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                children: [
-                  Text(text, style: GoogleFonts.inter(fontSize: 14.5.sp, color: isUser ? Colors.white : const Color(0xFF333333))),
-                  SizedBox(height: 4),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(time, style: GoogleFonts.inter(fontSize: 10.sp, color: isUser ? Colors.white70 : Colors.grey)),
-                      if (isUser) ...[SizedBox(width: 4), Image.asset("assets/images/ticks.png", width: 14, height: 14)],
-                    ],
-                  ),
-                ],
+  Widget _buildMessageBubble(Map<String, dynamic> msg, bool isUser) {
+    return Align(
+      alignment:
+          isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: EdgeInsets.symmetric(vertical: 1.h),
+        padding:
+            EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.8.h),
+        decoration: BoxDecoration(
+          color:
+              isUser ? const Color(0xFF339CFF) : Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(20),
+            topRight: const Radius.circular(20),
+            bottomLeft:
+                isUser ? const Radius.circular(20) : const Radius.circular(4),
+            bottomRight:
+                isUser ? const Radius.circular(4) : const Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              msg['content'],
+              style: GoogleFonts.inter(
+                fontSize: 15.sp,
+                color:
+                    isUser ? Colors.white : Colors.black87,
               ),
             ),
-          ),
-        ],
+            SizedBox(height: 0.4.h),
+            Text(
+              msg['created_at']
+                      ?.toString()
+                      .substring(11, 16) ??
+                  "",
+              style: GoogleFonts.inter(
+                fontSize: 10.sp,
+                color: isUser
+                    ? Colors.white70
+                    : Colors.grey,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildInputField() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
+      padding:
+          EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+      decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 10, offset: Offset(0, -4))],
+        border: Border(
+          top: BorderSide(color: Colors.grey, width: 0.3),
+        ),
       ),
       child: Row(
         children: [
-          Container(
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(color: const Color(0xFFF5F7FA), shape: BoxShape.circle),
-            child: Image.asset("assets/images/pin.png", width: 20, height: 20, color: const Color(0xFF339CFF)),
-          ),
-          SizedBox(width: 12),
           Expanded(
             child: TextField(
               controller: _controller,
               decoration: InputDecoration(
-                hintText: "Type message ...",
-                hintStyle: GoogleFonts.inter(color: Colors.grey.shade500, fontSize: 15.sp),
+                hintText: "Type a message...",
+                hintStyle:
+                    GoogleFonts.inter(color: Colors.grey),
                 filled: true,
                 fillColor: const Color(0xFFF7F7F7),
-                contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide(color: const Color(0xFF339CFF), width: 1.5)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
+                ),
               ),
+              onSubmitted: (_) => _sendMessage(),
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           GestureDetector(
-            onTap: () {
-              if (_controller.text.trim().isNotEmpty) {
-                setState(() {
-                  _messages.insert(0, {
-                    "text": _controller.text.trim(),
-                    "isUser": true,
-                    "time": DateTime.now().toString().substring(11, 16),
-                  });
-                });
-                _controller.clear();
-              }
-            },
+            onTap: _sendMessage,
             child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: const BoxDecoration(color: Color(0xFF339CFF), shape: BoxShape.circle),
-              child: const Icon(Icons.send, color: Colors.white, size: 20),
+              padding: const EdgeInsets.all(12),
+              decoration: const BoxDecoration(
+                color: Color(0xFF339CFF),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.send,
+                color: Colors.white,
+                size: 22,
+              ),
             ),
           ),
         ],

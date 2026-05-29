@@ -21,6 +21,8 @@ class User(Base):
     )
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str | None] = mapped_column(String(100))
+    phone: Mapped[str | None] = mapped_column(String(20), nullable=True)          
+    address: Mapped[str | None] = mapped_column(String(255), nullable=True)
     role: Mapped[UserRole] = mapped_column(default=UserRole.PATIENT)
     location: Mapped[dict | None] = mapped_column(
         JSON, nullable=True

@@ -15,21 +15,25 @@ class ApiService {
     );
 
     // Global Interceptor - Automatically adds Bearer token to ALL requests
-    dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) async {
-        final token = await TokenStorage.getToken();
-        if (token != null && token.isNotEmpty) {
-          options.headers['Authorization'] = 'Bearer $token';
-        } else {
-          print("⚠️ No token found for request: ${options.uri}");
-        }
-        return handler.next(options);
-      },
-      onError: (error, handler) {
-        print("❌ API Error [${error.response?.statusCode}]: ${error.response?.data}");
-        return handler.next(error);
-      },
-    ));
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final token = await TokenStorage.getToken();
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          } else {
+            print("⚠️ No token found for request: ${options.uri}");
+          }
+          return handler.next(options);
+        },
+        onError: (error, handler) {
+          print(
+            "❌ API Error [${error.response?.statusCode}]: ${error.response?.data}",
+          );
+          return handler.next(error);
+        },
+      ),
+    );
 
     // Optional: Log all requests (helpful for debugging)
     dio.interceptors.add(LogInterceptor(responseBody: true, requestBody: true));
@@ -63,7 +67,10 @@ class ApiService {
     return response.data;
   }
 
-  Future<Map<String, dynamic>> addToCart(int productId, {int quantity = 1}) async {
+  Future<Map<String, dynamic>> addToCart(
+    int productId, {
+    int quantity = 1,
+  }) async {
     final response = await dio.post(
       '/cart/add',
       data: {'product_id': productId, 'quantity': quantity},
@@ -96,7 +103,11 @@ class ApiService {
     return response.data as List<dynamic>;
   }
 
-  Future<List<dynamic>> getProductsByPharmacy(int pharmacyId, {int skip = 0, int limit = 20}) async {
+  Future<List<dynamic>> getProductsByPharmacy(
+    int pharmacyId, {
+    int skip = 0,
+    int limit = 20,
+  }) async {
     final response = await dio.get(
       '/products/pharmacy/$pharmacyId',
       queryParameters: {'skip': skip, 'limit': limit},
@@ -118,7 +129,12 @@ class ApiService {
   }) async {
     final response = await dio.get(
       '/pharmacies/nearby',
-      queryParameters: {'lat': lat, 'lon': lon, 'radius_km': radiusKm, 'limit': limit},
+      queryParameters: {
+        'lat': lat,
+        'lon': lon,
+        'radius_km': radiusKm,
+        'limit': limit,
+      },
     );
     return response.data as List<dynamic>;
   }
@@ -139,9 +155,13 @@ class ApiService {
     return response.data as Map<String, dynamic>;
   }
 
-    // ==================== CHAT ====================
+  // ==================== CHAT ====================
 
-  Future<List<dynamic>> getChatHistory(int consultationId, {int skip = 0, int limit = 50}) async {
+  Future<List<dynamic>> getChatHistory(
+    int consultationId, {
+    int skip = 0,
+    int limit = 50,
+  }) async {
     final response = await dio.get(
       '/consultations/$consultationId/messages',
       queryParameters: {'skip': skip, 'limit': limit},
@@ -149,10 +169,36 @@ class ApiService {
     return response.data as List<dynamic>;
   }
 
-  // For WebSocket (we'll handle connection separately)
-  String getChatWebSocketUrl(int consultationId) {
-    return 'ws://127.0.0.1:8000/chat/$consultationId';
+  Future<dynamic> sendChatMessage(int consultationId, String content) async {
+    final response = await dio.post(
+      '/consultations/$consultationId/messages',
+      data: {'content': content},
+    );
+    return response.data;
   }
+
+  // ==================== Profile ====================
+
+   // ==================== PROFILE ====================
+
+  Future<Map<String, dynamic>> getProfile() async {
+    final response = await dio.get('/auth/me');
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> updateProfile({
+    String? fullName,
+    String? phone,
+    String? address,
+  }) async {
+    final data = {
+      if (fullName != null) 'full_name': fullName,
+      if (phone != null) 'phone': phone,
+      if (address != null) 'address': address,
+    };
+
+    final response = await dio.put('/auth/me', data: data);
+    return response.data as Map<String, dynamic>;
+  }
+
 }
-
-

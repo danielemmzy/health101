@@ -11,4 +11,13 @@ class ChatRepository {
       return [];
     }
   }
+
+  Future<dynamic> sendChatMessage(int consultationId, String content) async {
+    try {
+      return await _apiService.sendChatMessage(consultationId, content);
+    } catch (e) {
+      print("Error sending message: $e");
+      rethrow;
+    }
+  }
 }
