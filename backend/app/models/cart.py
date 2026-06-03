@@ -13,6 +13,5 @@ class CartItem(Base):
     quantity: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
 
-    # Relationships
     user = relationship("User", back_populates="cart_items")
-    product = relationship("Product")
+    product = relationship("Product", back_populates="cart_items")

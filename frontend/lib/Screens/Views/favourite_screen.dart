@@ -1,58 +1,22 @@
 // screens/favourites_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:health101/Models/products.dart';
+import 'package:health101/Screens/Views/product_detailed_screen.dart';
+import 'package:health101/features/auth/providers/favourite_provider.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:page_transition/page_transition.dart';
 
-import 'product_detailed_screen.dart'; // Make sure this exists
+import '../widgets/product_card.dart';
 
-class FavouritesScreen extends StatelessWidget {
-  FavouritesScreen({super.key});
 
-  final List<Product> favouriteProducts = [
-    Product(
-      id: "fav1",
-      imageCard: "assets/images/vitamin_c.jpg",
-      imageDetail: "assets/images/vitamin_c.jpg",
-      category: "Vitamins",
-      name: "Vitamin C (Immune Support)",
-      description: "Boost your immunity",
-      rating: 4.9,
-      price: 25.0,
-      formerPrice: 32.0,
-      isFavorite: true,
-      deliveryTime: "15-20 min",
-    ),
-    Product(
-      id: "fav2",
-      imageCard: "assets/images/omega3.jpg",
-      imageDetail: "assets/images/omega3.jpg",
-      category: "Vitamins",
-      name: "Omega-3 Fish Oil",
-      description: "Heart & brain health",
-      rating: 4.7,
-      price: 30.0,
-      formerPrice: 40.0,
-      isFavorite: true,
-      deliveryTime: "15-20 min",
-    ),
-    Product(
-      id: "fav3",
-      imageCard: "assets/images/calamine.jpg",
-      imageDetail: "assets/images/calamine.jpg",
-      category: "Personal Care",
-      name: "Calamine Lotion",
-      description: "Soothes skin irritation",
-      rating: 4.8,
-      price: 10.0,
-      formerPrice: 14.0,
-      isFavorite: true,
-      deliveryTime: "15-20 min",
-    ),
-  ];
+class FavouritesScreen extends ConsumerWidget {
+  const FavouritesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favouritesAsync = ref.watch(favouritesProvider);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -68,22 +32,50 @@ class FavouritesScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: favouriteProducts.isEmpty
-          ? _buildEmptyState()
-          : GridView.builder(
-              padding: EdgeInsets.all(5.w),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 4.w,
-                mainAxisSpacing: 3.h,
-                childAspectRatio: 0.68,
-              ),
-              itemCount: favouriteProducts.length,
-              itemBuilder: (context, index) {
-                final product = favouriteProducts[index];
-                return _buildProductCard(context, product, index);
-              },
+      body: favouritesAsync.when(
+        data: (favourites) {
+          if (favourites.isEmpty) {
+            return _buildEmptyState();
+          }
+
+          return GridView.builder(
+            padding: EdgeInsets.all(5.w),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 4.w,
+              mainAxisSpacing: 3.h,
+              childAspectRatio: 0.68,
             ),
+            itemCount: favourites.length,
+            itemBuilder: (context, index) {
+              final product = favourites[index];
+
+              return ProductCard(
+                imagePath: product['image_url'] ?? product['thumbnail_url'] ?? "assets/images/placeholder.jpg",
+                category: product['category']?.toString() ?? "",
+                name: product['name'] ?? "Unknown Product",
+                description: product['description'] ?? "",
+                rating: (product['rating'] ?? 4.5).toDouble(),
+                price: (product['price'] ?? 0.0).toDouble(),
+                formerPrice: product['former_price']?.toDouble(),
+                heroTag: "fav_${product['id']}",                    // ← Always true here
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    PageTransition(
+                      type: PageTransitionType.bottomToTop,
+                      child: ProductDetailScreen(productId: product['id']),
+                    ),
+                  );
+                },
+                
+              );
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, __) => const Center(child: Text("Failed to load favourites")),
+      ),
     );
   }
 
@@ -92,103 +84,19 @@ class FavouritesScreen extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.favorite_border, size: 70, color: Colors.grey[400]),
-          SizedBox(height: 2.h),
+          Icon(Icons.favorite_border, size: 80, color: Colors.grey[400]),
+          SizedBox(height: 3.h),
           Text(
             "No favourites yet",
-            style: GoogleFonts.inter(fontSize: 17.sp, fontWeight: FontWeight.w600),
+            style: GoogleFonts.inter(fontSize: 18.sp, fontWeight: FontWeight.w600),
           ),
+          SizedBox(height: 1.h),
           Text(
-            "Tap on any product to add to favourites",
+            "Tap ❤️ on any product to add here",
             style: GoogleFonts.inter(fontSize: 14.sp, color: Colors.grey),
+            textAlign: TextAlign.center,
           ),
         ],
-      ),
-    );
-  }
-
-  // Reusable Product Card (same as your shop screen)
-  Widget _buildProductCard(BuildContext context, Product product, int index) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ProductDetailScreen(product: product),
-          ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: Offset(0, 5)),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-                  child: Image.asset(
-                    product.imageCard,
-                    height: 20.h,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Icon(Icons.favorite, color: Colors.red, size: 22.sp),
-                ),
-              ],
-            ),
-
-            Padding(
-              padding: EdgeInsets.all(3.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.category,
-                    style: GoogleFonts.inter(fontSize: 12.sp, color: Colors.grey[600]),
-                  ),
-                  SizedBox(height: 0.5.h),
-                  Text(
-                    product.name,
-                    style: GoogleFonts.inter(fontSize: 14.sp, fontWeight: FontWeight.w600),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 1.h),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "₦${product.price}",
-                        style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF339CFF)),
-                      ),
-                      if (product.formerPrice != null)
-                        Text(
-                          "₦${product.formerPrice}",
-                          style: GoogleFonts.inter(
-                            fontSize: 12.sp,
-                            color: Colors.grey,
-                            decoration: TextDecoration.lineThrough,
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

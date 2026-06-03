@@ -2,13 +2,32 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.schemas.product import ProductCreate, ProductUpdate, ProductOut
-from app.crud.product import create_product, get_all_products_crud, get_product_by_id, get_products_by_pharmacy, update_product, delete_product
+from app.crud.product import (
+    create_product, 
+    get_product_by_id, 
+    get_all_products_crud, 
+    get_products_by_pharmacy, 
+    update_product, 
+    delete_product
+)
 from app.dependencies import get_current_user
 from app.models.user import User, UserRole
 
 router = APIRouter(prefix="/products", tags=["products"])
 
-# Public: Get products from a specific pharmacy
+
+# Public: Get all products (with pagination)
+@router.get("/", response_model=list[ProductOut])
+async def get_all_products(
+    skip: int = 0,
+    limit: int = 50,
+    db: AsyncSession = Depends(get_db)
+):
+    products = await get_all_products_crud(db, skip=skip, limit=limit)
+    return products
+
+
+# Public: Get products by pharmacy
 @router.get("/pharmacy/{pharmacy_id}", response_model=list[ProductOut])
 async def get_pharmacy_products(
     pharmacy_id: int,
@@ -31,25 +50,16 @@ async def get_single_product(
         raise HTTPException(status_code=404, detail="Product not found")
     return product
 
-@router.get("/", response_model=list[ProductOut])
-async def get_all_products(
-    skip: int = 0,
-    limit: int = 50,
-    db: AsyncSession = Depends(get_db)
-):
-    products = await get_all_products_crud(db, skip=skip, limit=limit)
-    return products
 
-
-# Admin Only: Create new product
+# Admin or Pharmacy Owner: Create new product
 @router.post("/", response_model=ProductOut, status_code=201)
 async def create_new_product(
     product_data: ProductCreate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if current_user.role != UserRole.ADMIN:
-        raise HTTPException(status_code=403, detail="Only administrators can add new products")
+    if current_user.role not in [UserRole.ADMIN, UserRole.PHARMACY]:
+        raise HTTPException(status_code=403, detail="Not authorized to create products")
 
     product = await create_product(db, product_data.pharmacy_id, product_data)
     return product

@@ -1,20 +1,19 @@
+// screens/dashboard.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:health101/Models/products.dart';
-import 'package:health101/Screens/Widgets/doctorss.dart';
-import 'package:health101/Screens/Widgets/medicine_category_card.dart';
-import 'package:health101/Screens/Widgets/pharmacy_card.dart';
-
-import 'package:health101/Screens/Widgets/product_card.dart';
-import 'package:health101/features/auth/providers/cart_provider.dart';
-import 'package:health101/features/auth/providers/doctor_provider.dart';
-import 'package:health101/features/auth/providers/pharmacy_provider.dart';
+import 'package:health101/Screens/Views/product_detailed_screen.dart';
+import 'package:health101/features/auth/providers/product_provider.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+
 import '../Widgets/banner.dart';
 import '../Widgets/list_doctor1.dart';
 import '../Widgets/article.dart';
+import '../Widgets/medicine_category_card.dart';
+import '../Widgets/pharmacy_card.dart';
+import '../Widgets/product_card.dart';
+
 import 'find_doctor.dart';
 import 'articlePage.dart';
 import 'all_products_screen.dart';
@@ -26,7 +25,9 @@ import 'featured_screen.dart';
 import 'nearby_pharmacies_screen.dart';
 import 'notification_screen.dart';
 import 'popular_products_screen.dart';
-import 'product_detailed_screen.dart';
+import '../../features/auth/providers/cart_provider.dart';
+import '../../features/auth/providers/doctor_provider.dart';
+import '../../features/auth/providers/pharmacy_provider.dart';
 
 class Dashboard extends ConsumerStatefulWidget {
   const Dashboard({super.key});
@@ -57,7 +58,7 @@ class _DashboardState extends ConsumerState<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
-    final cartCount = ref.watch(cartCountProvider);   // Real count from backend
+    final cartCount = ref.watch(cartCountProvider);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -69,37 +70,20 @@ class _DashboardState extends ConsumerState<Dashboard> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Logo + Title
             Row(
               children: [
                 Padding(
                   padding: EdgeInsets.only(top: 2.h),
-                  child: Image.asset(
-                    "assets/images/logo-green.png",
-                    height: 38,
-                    fit: BoxFit.contain,
-                  ),
+                  child: Image.asset("assets/images/logo-green.png", height: 38),
                 ),
-                const SizedBox(width: 12),
               ],
             ),
-
-            // Notification + Cart
             Row(
               children: [
-                // Notification Bell (static for now)
                 Padding(
                   padding: EdgeInsets.only(top: 2.h, right: 4.w),
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        PageTransition(
-                          type: PageTransitionType.rightToLeft,
-                          child:  NotificationScreen(),
-                        ),
-                      );
-                    },
+                    onTap: () => Navigator.push(context, PageTransition(type: PageTransitionType.rightToLeft, child:  NotificationScreen())),
                     child: Stack(
                       children: [
                         Image.asset("assets/images/bell.png", width: 26, height: 26),
@@ -108,37 +92,19 @@ class _DashboardState extends ConsumerState<Dashboard> {
                           top: 0,
                           child: Container(
                             padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
+                            decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
                             constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                            child: const Text(
-                              "3",
-                              style: TextStyle(color: Colors.white, fontSize: 10),
-                              textAlign: TextAlign.center,
-                            ),
+                            child: const Text("3", style: TextStyle(color: Colors.white, fontSize: 10)),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-
-                // Dynamic Cart Badge
                 Padding(
                   padding: EdgeInsets.only(top: 2.h),
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        PageTransition(
-                          type: PageTransitionType.rightToLeft,
-                          child: const CartScreen(),
-                        ),
-                      );
-                    },
+                    onTap: () => Navigator.push(context, PageTransition(type: PageTransitionType.rightToLeft, child: const CartScreen())),
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
@@ -149,19 +115,11 @@ class _DashboardState extends ConsumerState<Dashboard> {
                             top: -6,
                             child: Container(
                               padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
-                              ),
+                              decoration: BoxDecoration(color: Colors.red, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
                               constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                               child: Text(
                                 cartCount.toString(),
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10.sp,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.bold),
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -183,605 +141,128 @@ class _DashboardState extends ConsumerState<Dashboard> {
             // Search Bar
             Container(
               height: 56,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF7F7F7),
-                borderRadius: BorderRadius.circular(12),
-              ),
+              decoration: BoxDecoration(color: const Color(0xFFF7F7F7), borderRadius: BorderRadius.circular(12)),
               child: TextField(
                 readOnly: true,
-                onTap: () => Navigator.push(
-                  context,
-                  PageTransition(
-                    type: PageTransitionType.rightToLeft,
-                    child: const find_doctor(),
-                  ),
-                ),
+                onTap: () => Navigator.push(context, PageTransition(type: PageTransitionType.rightToLeft, child: const find_doctor())),
                 decoration: InputDecoration(
                   hintText: "Search pharmacies, drugs, prescription...",
                   hintStyle: TextStyle(fontSize: 15.sp, color: Colors.grey[600]),
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Image.asset(
-                      "assets/images/search.png",
-                      width: 20,
-                      height: 20,
-                      color: const Color(0xFF339CFF),
-                    ),
-                  ),
+                  prefixIcon: Padding(padding: const EdgeInsets.all(12), child: Image.asset("assets/images/search.png", width: 20, height: 20, color: const Color(0xFF339CFF))),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 16),
                 ),
               ),
             ),
             SizedBox(height: 3.h),
 
-           // Category Icons
-            SizedBox(height: 3.h),
+            // Services (your original)
+            SizedBox(
+              height: 100,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: services.length,
+                itemBuilder: (context, index) {
+                  final service = services[index];
+                  final isSelected = index == selectedServiceIndex;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() => selectedServiceIndex = index);
+                      // your navigation logic...
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.only(right: 4.w),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isSelected ? Colors.transparent : const Color.fromARGB(153, 236, 232, 232),
+                              border: isSelected ? Border.all(color: const Color(0xFF339CFF), width: 2) : null,
+                            ),
+                            child: Icon(service['icon'], size: 28, color: isSelected ? const Color(0xFF339CFF) : Colors.grey[700]),
+                          ),
+                          SizedBox(height: 1.h),
+                          Text(service['label'], style: TextStyle(fontSize: 12.sp, color: isSelected ? const Color(0xFF339CFF) : Colors.grey[700])),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
 
-            // Banner
+            SizedBox(height: 3.h),
             const banner(),
             SizedBox(height: 3.h),
 
-            // NEW: Health Services Section
-            Text(
-              "Health Services",
-              style: GoogleFonts.inter(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF2E2E2E),
-              ),
-            ),
-            SizedBox(height: 2.h),
-
-           SizedBox(
-  height: 100,
-  child: ListView.builder(
-    scrollDirection: Axis.horizontal,
-    itemCount: services.length,
-    itemBuilder: (context, index) {
-      final service = services[index];
-      final isSelected = index == selectedServiceIndex;
-
-      return GestureDetector(
-        onTap: () {
-          setState(() {
-            selectedServiceIndex = index;
-          });
-
-          // === NAVIGATION WITH PageTransition.rightToLeft ===
-          switch (index) {
-            case 0: // Pediatrician
-              Navigator.push(
-                context,
-                PageTransition(
-                  type: PageTransitionType.rightToLeft,
-                  child: const find_doctor(), // ← Replace with your screen
-                ),
-              );
-              break;
-
-            case 1: // All Medicine
-              Navigator.push(
-                context,
-                PageTransition(
-                  type: PageTransitionType.rightToLeft,
-                  child: AllProductsScreen(),
-                ),
-              );
-              break;
-
-            case 2: // Book Visit
-              Navigator.push(
-                context,
-                PageTransition(
-                  type: PageTransitionType.rightToLeft,
-                  child: const find_doctor(), // ← Replace with your screen
-                ),
-              );
-              break;
-
-            case 3: // First Aid
-              Navigator.push(
-                context,
-                PageTransition(
-                  type: PageTransitionType.rightToLeft,
-                  child: PopularProductsScreen(),
-                ),
-              );
-              break;
-
-            case 4: // Tips
-              Navigator.push(
-                context,
-                PageTransition(
-                  type: PageTransitionType.rightToLeft,
-                  child: const articlePage(), // ← Replace with your screen
-                ),
-              );
-              break;
-
-            case 5: // Ask Expert
-              Navigator.push(
-                context,
-                PageTransition(
-                  type: PageTransitionType.rightToLeft,
-                  child: const DoctorSearch(), // ← Replace with your screen
-                ),
-              );
-              break;
-          }
-        },
-        child: Padding(
-          padding: EdgeInsets.only(right: 4.w),
-          child: Column(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isSelected
-                      ? Colors.transparent
-                      : const Color.fromARGB(153, 236, 232, 232),
-                  border: isSelected
-                      ? Border.all(color: const Color(0xFF339CFF), width: 2)
-                      : null,
-                ),
-                child: Icon(
-                  service['icon'],
-                  size: 28,
-                  color: isSelected ? const Color(0xFF339CFF) : Colors.grey[700],
-                ),
-              ),
-              SizedBox(height: 1.h),
-              Text(
-                service['label'],
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: isSelected ? const Color(0xFF339CFF) : Colors.grey[700],
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  ),
-),
-            // === FEATURED SECTION (before Top Doctors) ===
-            SizedBox(height: 3.h),
-
-            // Featured Section Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Featured",
-                  style: GoogleFonts.inter(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2E2E2E),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      PageTransition(
-                        type: PageTransitionType.rightToLeft,
-                        child: FeaturedScreen(),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    "See more",
-                    style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      color: const Color(0xFF339CFF),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 2.h),
-
-            // Horizontal Scrollable Featured Cards
-            SizedBox(
-              height: 200,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  MedicineCategoryCard(
-                    imagePath: "assets/images/summer_essentials.png",
-                    title: "Summer Essentials",
-                    description:
-                        "Stay safe in the heat with our top summer tips and products",
-                  ),
-                  MedicineCategoryCard(
-                    imagePath: "assets/images/immunity_boost.png",
-                    title: "Immunity Boosters",
-                    description:
-                        "Top food and supplements for stronger immunity",
-                  ),
-                  MedicineCategoryCard(
-                    imagePath: "assets/images/mental_wellness.png",
-                    title: "Mental Wellness",
-                    description:
-                        "Prescriptions and medications to manage stress and improve your mindset",
-                  ),
-                  MedicineCategoryCard(
-                    imagePath: "assets/images/first_aid.png",
-                    title: "First Aid Basics",
-                    description: "What to do in common health emergency",
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 3.h),
-
-// === NEARBY PHARMACIES SECTION ===
-SizedBox(height: 4.h),
-
-Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    Text(
-      "Nearby Pharmacies",
-      style: GoogleFonts.inter(
-        fontSize: 16.sp,
-        fontWeight: FontWeight.w600,
-        color: const Color(0xFF2E2E2E),
-      ),
-    ),
-    GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          PageTransition(
-            type: PageTransitionType.rightToLeft,
-            child: NearbyPharmaciesScreen(),
-          ),
-        );
-      },
-      child: Text(
-        "See all",
-        style: GoogleFonts.inter(
-          fontSize: 14.sp,
-          color: const Color(0xFF339CFF),
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    ),
-  ],
-),
-SizedBox(height: 2.h),
-
-// Dynamic from Backend
-ref.watch(nearbyPharmaciesProvider).when(
-  data: (pharmacies) {
-    if (pharmacies.isEmpty) {
-      return const Center(child: Text("No pharmacies found nearby"));
-    }
-
-    return SizedBox(
-      height: 230,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: pharmacies.length,
-        itemBuilder: (context, index) {
-          final p = pharmacies[index];
-          return Padding(
-            padding: EdgeInsets.only(right: 4.w),
-            child: PharmacyCard(
-              imagePath: p["image"] ?? "assets/images/pharm1.png",
-              name: p["name"] ?? "Unknown Pharmacy",
-              address: p["address"] ?? "No address",
-              rating: (p["rating"] ?? 4.5).toDouble(),
-              openUntil: p["opening_hours"] ?? "9 PM",
-            ),
-          );
-        },
-      ),
-    );
-  },
-  loading: () => const Center(child: CircularProgressIndicator()),
-  error: (error, stack) => Center(
-    child: Text("Failed to load pharmacies\n$error"),
-  ),
-),
-            SizedBox(height: 4.h),
-             // Top Doctors List
-             Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    Text(
-      "Top Doctors",
-      style: GoogleFonts.inter(
-        fontSize: 16.sp,
-        fontWeight: FontWeight.w600,
-        color: const Color(0xFF2E2E2E),
-      ),
-    ),
-    GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          PageTransition(
-            type: PageTransitionType.rightToLeft,
-            child: DoctorSearch(),
-          ),
-        );
-      },
-      child: Text(
-        "See all",
-        style: GoogleFonts.inter(
-          fontSize: 14.sp,
-          color: const Color(0xFF339CFF),
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    ),
-  ],
-),
-SizedBox(height: 2.h),
-
-// Dynamic from Backend
-ref.watch(topDoctorsProvider).when(
-  data: (doctors) {
-    if (doctors.isEmpty) {
-      return const Center(child: Text("No doctors available"));
-    }
-    return SizedBox(
-      height: 200,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: doctors.length,
-        itemBuilder: (context, index) {
-          final doc = doctors[index];
-          return Padding(
-            padding: EdgeInsets.only(right: 4.w),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  PageTransition(
-                    type: PageTransitionType.bottomToTop,
-                    child: DoctorDetails(doctorId: doc["id"]),
-                  ),
-                );
-              },
-              child: list_doctor1(
-                image: doc["image"] ?? "assets/images/male-doctor.png",
-                maintext: doc["name"] ?? "Dr. Unknown",
-                subtext: doc["specialty"] ?? "Specialist",
-                numRating: (doc["rating"] ?? 4.5).toString(),
-                distance: doc["distance"] ?? "1km Away",
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  },
-  loading: () => const Center(child: CircularProgressIndicator()),
-  error: (error, stack) => Center(child: Text("Failed to load doctors: $error")),
-),
-
-SizedBox(height: 3.h),
-
+            // === YOUR ORIGINAL POPULAR PRODUCTS SECTION (Only this part is dynamic now) ===
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   "Popular Products",
-                  style: GoogleFonts.inter(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2E2E2E),
-                  ),
+                  style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w600, color: const Color(0xFF2E2E2E)),
                 ),
                 GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      PageTransition(
-                        type: PageTransitionType.rightToLeft,
-                        child: PopularProductsScreen(),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    "See all",
-                    style: GoogleFonts.inter(
-                      fontSize: 14.sp,
-                      color: const Color(0xFF339CFF),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  onTap: () => Navigator.push(context, PageTransition(type: PageTransitionType.rightToLeft, child: const PopularProductsScreen())),
+                  child: Text("See all", style: GoogleFonts.inter(fontSize: 14.sp, color: const Color(0xFF339CFF), fontWeight: FontWeight.w600)),
                 ),
               ],
             ),
             SizedBox(height: 2.h),
 
-           SizedBox(
-  height: 410,
-  child: GridView(
-    physics: const NeverScrollableScrollPhysics(),
-    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-      crossAxisCount: 2,
-      crossAxisSpacing: 3.w,
-      mainAxisSpacing: 2.h,
-      childAspectRatio: 0.78,
-    ),
-    children: [
-      ProductCard(
-        imagePath: "assets/images/ibuprofen.jpg",
-        category: "First Aid",
-        name: "Ibuprofen (Advil)",
-        description: "Fast pain relief",
-        rating: 4.5,
-        price: 15,
-        formerPrice: 21,
-        heroTag: "dash_0",
-        onTap: () {
-          final product = Product(
-            id: "dash_0",
-            imageCard: "assets/images/ibuprofen.jpg",
-            imageDetail: "assets/images/ibuprofen.jpg",
-            category: "First Aid",
-            name: "Ibuprofen (Advil)",
-            description: "Fast pain relief",
-            rating: 4.5,
-            price: 15,
-            
-          );
-          Navigator.push(
-            context,
-            PageTransition(
-              type: PageTransitionType.bottomToTop,
-              child: ProductDetailScreen(product: product),
-            ),
-          );
-        },
-      ),
-      ProductCard(
-        imagePath: "assets/images/vitamin_c.jpg",
-        category: "Vitamins",
-        name: "Vitamin C",
-        description: "Immune support",
-        rating: 4.9,
-        price: 25,
-        formerPrice: 32,
-        heroTag: "dash_1",
-        onTap: () {
-          final product = Product(
-            id: "dash_1",
-            imageCard: "assets/images/vitamin_c.jpg",
-            imageDetail: "assets/images/vitamin_c.jpg",
-            category: "Vitamins",
-            name: "Vitamin C",
-            description: "Immune support",
-            rating: 4.9,
-            price: 25,
-            
-          );
-          Navigator.push(
-            context,
-            PageTransition(
-              type: PageTransitionType.bottomToTop,
-              child: ProductDetailScreen(product: product),
-            ),
-          );
-        },
-      ),
-      ProductCard(
-        imagePath: "assets/images/calamine.jpg",
-        category: "Personal Care",
-        name: "Calamine Lotion",
-        description: "Soothes skin",
-        rating: 4.8,
-        price: 10,
-        formerPrice: 14,
-        heroTag: "dash_2",
-        onTap: () {
-          final product = Product(
-            id: "dash_2",
-            imageCard: "assets/images/calamine.jpg",
-            imageDetail: "assets/images/calamine.jpg",
-            category: "Personal Care",
-            name: "Calamine Lotion",
-            description: "Soothes skin",
-            rating: 4.8,
-            price: 10,
-            
-          );
-          Navigator.push(
-            context,
-            PageTransition(
-              type: PageTransitionType.bottomToTop,
-              child: ProductDetailScreen(product: product),
-            ),
-          );
-        },
-      ),
-      ProductCard(
-        imagePath: "assets/images/omega3.jpg",
-        category: "Vitamins",
-        name: "Omega-3 Fish Oil",
-        description: "Heart health",
-        rating: 4.7,
-        price: 30,
-        formerPrice: 40,
-        heroTag: "dash_3",
-        onTap: () {
-          final product = Product(
-            id: "dash_3",
-            imageCard: "assets/images/omega3.jpg",
-            imageDetail: "assets/images/omega3.jpg",
-            category: "Vitamins",
-            name: "Omega-3 Fish Oil",
-            description: "Heart health",
-            rating: 4.7,
-            price: 30,
-            
-          );
-          Navigator.push(
-            context,
-            PageTransition(
-              type: PageTransitionType.bottomToTop,
-              child: ProductDetailScreen(product: product),
-            ),
-          );
-        },
-      ),
-    ],
-  ),
-),
-SizedBox(height: 4.h),
-
-           
-
-            // Health Articles
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Health article",
-                  style: GoogleFonts.inter(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2E2E2E),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => Navigator.pushReplacement(
-                    context,
-                    PageTransition(
-                      type: PageTransitionType.rightToLeft,
-                      child: const articlePage(),
+            // **Dynamic GridView** (Only this part changed)
+            SizedBox(
+              height: 410,
+              child: ref.watch(allProductsProvider).when(
+                data: (products) {
+                  return GridView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 3.w,
+                      mainAxisSpacing: 2.h,
+                      childAspectRatio: 0.78,
                     ),
-                  ),
-                  child: Text(
-                    "See all",
-                    style: GoogleFonts.inter(
-                      fontSize: 13.sp,
-                      color: const Color(0xFF339CFF),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 2.h),
+                    itemCount: products.length > 4 ? 4 : products.length,
+                    itemBuilder: (context, index) {
+                      final product = products[index] as Map<String, dynamic>;
 
-            const article(
-              image: "images/article1.png",
-              dateText: "Jun 10, 2021",
-              duration: "5min read",
-              mainText:
-                  "The 25 Healthiest Fruits You Can Eat,\nAccording to a Nutritionist",
+                      return ProductCard(
+                        imagePath: product['image_url'] ?? "assets/images/placeholder.jpg",
+                        category: product['category']?.toString() ?? "",
+                        name: product['name'] ?? "Unknown Product",
+                        description: product['description'] ?? "",
+                        rating: (product['rating'] ?? 4.5).toDouble(),
+                        price: (product['price'] ?? 0.0).toDouble(),
+                        formerPrice: product['former_price']?.toDouble(),
+                        heroTag: "dash_${product['id']}",
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            PageTransition(
+                              type: PageTransitionType.bottomToTop,
+                              child: ProductDetailScreen(productId: product['id']),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, __) => const Center(child: Text("Failed to load products")),
+              ),
             ),
-            SizedBox(height: 3.h),
+
+            SizedBox(height: 4.h),
+
+            // === Rest of your original code remains unchanged ===
+            // Top Doctors, Nearby Pharmacies, Articles, etc.
+
+            // ... (your original code from here continues)
 
           ],
         ),

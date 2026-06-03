@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
-from typing import Optional, Dict
+from typing import Any, Optional, Dict
 from enum import Enum as PyEnum
 from app.models.user import UserRole  # assuming this is where UserRole lives
 
@@ -50,6 +50,16 @@ class UserOut(UserBase):
     id: int
     is_active: bool
     created_at: datetime
+    location: Optional[Dict[str, Any]] = None
+
+    @field_validator('location', mode='before')
+    @classmethod
+    def parse_location(cls, v: Any):
+        if isinstance(v, str):
+            return {"address": v}          # Convert string to dict
+        if isinstance(v, dict):
+            return v
+        return None 
 
     model_config = ConfigDict(
         from_attributes=True,

@@ -61,21 +61,29 @@ class ApiService {
     return response.data;
   }
 
+
   // ==================== CART ====================
+
   Future<Map<String, dynamic>> getCartCount() async {
     final response = await dio.get('/cart/count');
-    return response.data;
+    return response.data as Map<String, dynamic>;
   }
 
-  Future<Map<String, dynamic>> addToCart(
-    int productId, {
-    int quantity = 1,
-  }) async {
+  Future<List<dynamic>> getCart() async {
+    final response = await dio.get('/cart/');
+    return response.data as List<dynamic>;
+  }
+
+  Future<dynamic> addToCart(int productId, {int quantity = 1}) async {
     final response = await dio.post(
       '/cart/add',
       data: {'product_id': productId, 'quantity': quantity},
     );
     return response.data;
+  }
+
+  Future<void> clearCart() async {
+    await dio.delete('/cart/clear');
   }
 
   // ==================== CONSULTATIONS ====================
@@ -177,7 +185,7 @@ class ApiService {
     return response.data;
   }
 
-  // ==================== Profile ====================
+  
 
    // ==================== PROFILE ====================
 
@@ -198,6 +206,40 @@ class ApiService {
     };
 
     final response = await dio.put('/auth/me', data: data);
+    return response.data as Map<String, dynamic>;
+  }
+
+// ==================== FAVOURITES ====================
+
+  Future<List<dynamic>> getFavourites() async {
+    final response = await dio.get('/favourites');
+    return response.data as List<dynamic>;
+  }
+
+  Future<dynamic> addToFavourites(int productId) async {
+    final response = await dio.post('/favourites', data: {'product_id': productId});
+    return response.data;
+  }
+
+  Future<dynamic> removeFromFavourites(int productId) async {
+    final response = await dio.delete('/favourites/$productId');
+    return response.data;
+  }
+
+    // ==================== ORDERS ====================
+
+  Future<List<dynamic>> getMyOrders() async {
+    final response = await dio.get('/orders/me');
+    return response.data as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getOrderById(int orderId) async {
+    final response = await dio.get('/orders/$orderId');
+    return response.data as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> checkout(Map<String, dynamic> data) async {
+    final response = await dio.post('/orders/checkout', data: data);
     return response.data as Map<String, dynamic>;
   }
 

@@ -1,3 +1,4 @@
+# app/crud/product.py
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
 from app.models.products import Product
@@ -20,7 +21,9 @@ async def create_product(db: AsyncSession, pharmacy_id: int, product_data: Produ
         stock_quantity=product_data.stock_quantity,
         category=product_data.category,
         prescription_required=product_data.prescription_required,
-        image_url=product_data.image_url
+        image_urls=product_data.image_urls,          # Multiple images
+        thumbnail_url=product_data.thumbnail_url,
+        is_featured=product_data.is_featured
     )
 
     db.add(product)
@@ -32,13 +35,14 @@ async def create_product(db: AsyncSession, pharmacy_id: int, product_data: Produ
 async def get_product_by_id(db: AsyncSession, product_id: int):
     stmt = select(Product).where(Product.id == product_id)
     result = await db.execute(stmt)
-    product = result.scalar_one_or_none()
-    return product
+    return result.scalar_one_or_none()
+
 
 async def get_all_products_crud(db: AsyncSession, skip: int = 0, limit: int = 50):
     stmt = select(Product).offset(skip).limit(limit)
     result = await db.execute(stmt)
     return result.scalars().all()
+
 
 async def get_products_by_pharmacy(db: AsyncSession, pharmacy_id: int, skip: int = 0, limit: int = 20):
     stmt = select(Product).where(
@@ -50,7 +54,6 @@ async def get_products_by_pharmacy(db: AsyncSession, pharmacy_id: int, skip: int
 
 
 async def update_product(db: AsyncSession, product_id: int, product_data: ProductUpdate):
-    # Build update values only for fields that are not None
     update_values = {}
     if product_data.name is not None:
         update_values["name"] = product_data.name
@@ -64,11 +67,15 @@ async def update_product(db: AsyncSession, product_id: int, product_data: Produc
         update_values["category"] = product_data.category
     if product_data.prescription_required is not None:
         update_values["prescription_required"] = product_data.prescription_required
-    if product_data.image_url is not None:
-        update_values["image_url"] = product_data.image_url
+    if product_data.image_urls is not None:
+        update_values["image_urls"] = product_data.image_urls
+    if product_data.thumbnail_url is not None:
+        update_values["thumbnail_url"] = product_data.thumbnail_url
+    if product_data.is_featured is not None:
+        update_values["is_featured"] = product_data.is_featured
 
     if not update_values:
-        return None  # nothing to update
+        return None
 
     stmt = (
         update(Product)
@@ -76,12 +83,9 @@ async def update_product(db: AsyncSession, product_id: int, product_data: Produc
         .values(**update_values)
         .returning(Product)
     )
-
     result = await db.execute(stmt)
     await db.commit()
-    updated_product = result.scalar_one_or_none()
-
-    return updated_product
+    return result.scalar_one_or_none()
 
 
 async def delete_product(db: AsyncSession, product_id: int):

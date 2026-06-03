@@ -6,10 +6,12 @@ from .doctor import Doctor
 from .consultation import Consultation, ConsultationStatus
 from .chat_message import ChatMessage
 from .pharmacy import Pharmacy       
-from .products import Product         
-from .orders import Order  
+from .products import Product          
 from .order_item import OrderItem
 from .coupon import Coupon 
-from .cart import CartItem            
+from .cart import CartItem 
+from .orders import Order,  OrderStatus
+from .payment import Payment
+         
 
-__all__ = ["User", "Doctor", "Consultation", "ConsultationStatus", "ChatMessage", "Pharmacy", "Product", "Order", "OrderItem", "Coupon", "CartItem"]
+__all__ = ["User", "Doctor", "Consultation", "ConsultationStatus", "ChatMessage", "Pharmacy", "Product", "Order", "OrderStatus", "OrderItem", "Coupon", "CartItem", "Payment"]

@@ -1,32 +1,37 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
-import 'package:health101/core/utilis/token_storage.dart';
+import '../data/cart_repository.dart';
 
-final dioProvider = Provider<Dio>((ref) => Dio());
+final cartRepositoryProvider = Provider<CartRepository>((ref) => CartRepository());
 
-final cartCountProvider = StateNotifierProvider<CartNotifier, int>((ref) {
-  return CartNotifier();
-});  
+// Main Cart Provider
+final cartProvider = FutureProvider<List<dynamic>>((ref) async {
+  final repo = ref.watch(cartRepositoryProvider);
+  return await repo.getCart();
+});
 
-class CartNotifier extends StateNotifier<int> {
-  CartNotifier() : super(0);
+// Cart Count Provider (for badge)
+final cartCountProvider = StateNotifierProvider<CartCountNotifier, int>((ref) {
+  final repo = ref.watch(cartRepositoryProvider);
+  return CartCountNotifier(repo);
+});
+
+class CartCountNotifier extends StateNotifier<int> {
+  final CartRepository _repository;
+
+  CartCountNotifier(this._repository) : super(0);
 
   Future<void> fetchCartCount() async {
-    try {
-      final token = await TokenStorage.getToken();
-      if (token == null) {
-        state = 0;
-        return;
-      }
-
-      final response = await Dio().get(
-        'http://127.0.0.1:8000/cart/count',
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
-      );
-
-      state = response.data['count'] ?? 0;
-    } catch (e) {
-      state = 0;
-    }
+    final count = await _repository.getCartCount();
+    state = count;
   }
+
+  void increment() => state++;
+  void decrement() => state = state > 0 ? state - 1 : 0;
 }
+
+// Add to Cart Action
+final addToCartProvider = FutureProvider.family<void, Map<String, dynamic>>((ref, params) async {
+  final repo = ref.watch(cartRepositoryProvider);
+  await repo.addToCart(params['productId'], quantity: params['quantity'] ?? 1);
+  ref.read(cartCountProvider.notifier).fetchCartCount(); // Refresh count
+});

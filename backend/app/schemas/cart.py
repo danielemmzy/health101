@@ -1,11 +1,14 @@
 from pydantic import BaseModel
 from typing import List
 
-class CartItem(BaseModel):
+class CartItemOut(BaseModel):
     product_id: int
-    quantity: int = 1
+    quantity: int
+    product_name: str
+    price: float
+    total: float
 
 class CartResponse(BaseModel):
-    items: List[dict]
+    items: List[CartItemOut]
     total_items: int
-    total_amount: float = 0.0
+    total_amount: float

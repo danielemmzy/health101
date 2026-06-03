@@ -44,6 +44,7 @@ async def clear_cart(user_id: int):
     """Clear entire cart"""
     await redis.delete(f"cart:{user_id}")
 
+
 async def apply_coupon(db: AsyncSession, user_id: int, code: str):
     stmt = select(Coupon).where(Coupon.code == code.upper(), Coupon.is_active == True)
     result = await db.execute(stmt)

@@ -120,7 +120,8 @@ class _AllProductsScreenState extends ConsumerState<AllProductsScreen> {
                   final matchesSearch = _searchQuery.isEmpty ||
                       p["name"].toString().toLowerCase().contains(_searchQuery.toLowerCase());
 
-                  final matchesCategory = _selectedCategory == "All" || p["category"] == _selectedCategory;
+                  final matchesCategory = _selectedCategory == "All" || 
+                      p["category"] == _selectedCategory;
 
                   return matchesSearch && matchesCategory;
                 }).toList();
@@ -129,6 +130,7 @@ class _AllProductsScreenState extends ConsumerState<AllProductsScreen> {
                   return const Center(child: Text("No products found"));
                 }
 
+                // ← Add return here
                 return GridView.builder(
                   padding: EdgeInsets.all(5.w),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -139,22 +141,23 @@ class _AllProductsScreenState extends ConsumerState<AllProductsScreen> {
                   ),
                   itemCount: filtered.length,
                   itemBuilder: (context, index) {
-                    final p = filtered[index];
+                    final product = filtered[index] as Map<String, dynamic>;   // ← Use filtered, not products
+
                     return ProductCard(
-                      imagePath: p["image_url"] ?? "assets/images/placeholder.jpg",
-                      category: p["category"] ?? "",
-                      name: p["name"] ?? "",
-                      description: p["description"] ?? "",
-                      rating: (p["rating"] ?? 4.5).toDouble(),
-                      price: (p["price"] ?? 0.0).toDouble(),
-                      formerPrice: p["former_price"]?.toDouble(),
-                      heroTag: "product_${p['id']}",
+                      imagePath: product['image_url'] ?? product['thumbnail_url'] ?? "assets/images/placeholder.jpg",
+                      category: product['category']?.toString() ?? "",
+                      name: product['name'] ?? "Unknown Product",
+                      description: product['description'] ?? "",
+                      rating: (product['rating'] ?? 4.5).toDouble(),
+                      price: (product['price'] ?? 0.0).toDouble(),
+                      formerPrice: product['former_price']?.toDouble(),
+                      heroTag: "dash_${product['id']}",
                       onTap: () {
                         Navigator.push(
                           context,
                           PageTransition(
                             type: PageTransitionType.bottomToTop,
-                            child: ProductDetailScreen(product: p),
+                            child: ProductDetailScreen(productId: product['id']),
                           ),
                         );
                       },

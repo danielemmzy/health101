@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, field_validator
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from enum import Enum as PyEnum
 
@@ -20,11 +20,12 @@ class ProductBase(BaseModel):
     stock_quantity: int = 0
     category: ProductCategory
     prescription_required: bool = False
-    image_url: Optional[str] = None
+    image_urls: Optional[List[str]] = None      # Multiple images
+    thumbnail_url: Optional[str] = None
+    is_featured: bool = False
 
 class ProductCreate(ProductBase):
     pharmacy_id: int
-    """Used by pharmacy to add a new product"""
 
     @field_validator("price")
     @classmethod
@@ -34,14 +35,15 @@ class ProductCreate(ProductBase):
         return v
 
 class ProductUpdate(BaseModel):
-    """Used for partial updates by pharmacy owner"""
     name: Optional[str] = None
     description: Optional[str] = None
     price: Optional[float] = None
     stock_quantity: Optional[int] = None
     category: Optional[ProductCategory] = None
     prescription_required: Optional[bool] = None
-    image_url: Optional[str] = None
+    image_urls: Optional[List[str]] = None
+    thumbnail_url: Optional[str] = None
+    is_featured: Optional[bool] = None
 
 class ProductOut(ProductBase):
     id: int
