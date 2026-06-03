@@ -155,7 +155,7 @@ class _DashboardState extends ConsumerState<Dashboard> {
             ),
             SizedBox(height: 3.h),
 
-            // Services (your original)
+            // Services
             SizedBox(
               height: 100,
               child: ListView.builder(
@@ -167,7 +167,7 @@ class _DashboardState extends ConsumerState<Dashboard> {
                   return GestureDetector(
                     onTap: () {
                       setState(() => selectedServiceIndex = index);
-                      // your navigation logic...
+                      // Add navigation logic here
                     },
                     child: Padding(
                       padding: EdgeInsets.only(right: 4.w),
@@ -197,14 +197,11 @@ class _DashboardState extends ConsumerState<Dashboard> {
             const banner(),
             SizedBox(height: 3.h),
 
-            // === YOUR ORIGINAL POPULAR PRODUCTS SECTION (Only this part is dynamic now) ===
+            // Popular Products (Dynamic)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Popular Products",
-                  style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w600, color: const Color(0xFF2E2E2E)),
-                ),
+                Text("Popular Products", style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w600, color: const Color(0xFF2E2E2E))),
                 GestureDetector(
                   onTap: () => Navigator.push(context, PageTransition(type: PageTransitionType.rightToLeft, child: const PopularProductsScreen())),
                   child: Text("See all", style: GoogleFonts.inter(fontSize: 14.sp, color: const Color(0xFF339CFF), fontWeight: FontWeight.w600)),
@@ -213,7 +210,6 @@ class _DashboardState extends ConsumerState<Dashboard> {
             ),
             SizedBox(height: 2.h),
 
-            // **Dynamic GridView** (Only this part changed)
             SizedBox(
               height: 410,
               child: ref.watch(allProductsProvider).when(
@@ -259,11 +255,114 @@ class _DashboardState extends ConsumerState<Dashboard> {
 
             SizedBox(height: 4.h),
 
-            // === Rest of your original code remains unchanged ===
-            // Top Doctors, Nearby Pharmacies, Articles, etc.
+            // Nearby Pharmacies
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Nearby Pharmacies", style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w600, color: const Color(0xFF2E2E2E))),
+                GestureDetector(
+                  onTap: () => Navigator.push(context, PageTransition(type: PageTransitionType.rightToLeft, child: NearbyPharmaciesScreen())),
+                  child: Text("See all", style: GoogleFonts.inter(fontSize: 14.sp, color: const Color(0xFF339CFF), fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+            SizedBox(height: 2.h),
 
-            // ... (your original code from here continues)
+            ref.watch(nearbyPharmaciesProvider).when(
+              data: (pharmacies) {
+                return SizedBox(
+                  height: 230,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: pharmacies.length,
+                    itemBuilder: (context, index) {
+                      final p = pharmacies[index];
+                      return Padding(
+                        padding: EdgeInsets.only(right: 4.w),
+                        child: PharmacyCard(
+                          imagePath: p["image"] ?? "assets/images/pharm1.png",
+                          name: p["name"] ?? "Unknown Pharmacy",
+                          address: p["address"] ?? "No address",
+                          rating: (p["rating"] ?? 4.5).toDouble(),
+                          openUntil: p["opening_hours"] ?? "9 PM",
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) => const Center(child: Text("Failed to load pharmacies")),
+            ),
 
+            SizedBox(height: 4.h),
+
+            // Top Doctors
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Top Doctors", style: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.w600, color: const Color(0xFF2E2E2E))),
+                GestureDetector(
+                  onTap: () => Navigator.push(context, PageTransition(type: PageTransitionType.rightToLeft, child: DoctorSearch())),
+                  child: Text("See all", style: GoogleFonts.inter(fontSize: 14.sp, color: const Color(0xFF339CFF), fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+            SizedBox(height: 2.h),
+
+            ref.watch(topDoctorsProvider).when(
+              data: (doctors) {
+                return SizedBox(
+                  height: 200,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: doctors.length,
+                    itemBuilder: (context, index) {
+                      final doc = doctors[index];
+                      return Padding(
+                        padding: EdgeInsets.only(right: 4.w),
+                        child: GestureDetector(
+                          onTap: () => Navigator.push(context, PageTransition(type: PageTransitionType.bottomToTop, child: DoctorDetails(doctorId: doc["id"]))),
+                          child: list_doctor1(
+                            image: doc["image"] ?? "assets/images/male-doctor.png",
+                            maintext: doc["name"] ?? "Dr. Unknown",
+                            subtext: doc["specialty"] ?? "Specialist",
+                            numRating: (doc["rating"] ?? 4.5).toString(),
+                            distance: doc["distance"] ?? "1km Away",
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) => const Center(child: Text("Failed to load doctors")),
+            ),
+
+            SizedBox(height: 4.h),
+
+            // Health Articles
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Health article", style: GoogleFonts.inter(fontSize: 15.sp, fontWeight: FontWeight.w600, color: const Color(0xFF2E2E2E))),
+                GestureDetector(
+                  onTap: () => Navigator.pushReplacement(context, PageTransition(type: PageTransitionType.rightToLeft, child: const articlePage())),
+                  child: Text("See all", style: GoogleFonts.inter(fontSize: 13.sp, color: const Color(0xFF339CFF))),
+                ),
+              ],
+            ),
+            SizedBox(height: 2.h),
+
+            const article(
+              image: "images/article1.png",
+              dateText: "Jun 10, 2021",
+              duration: "5min read",
+              mainText: "The 25 Healthiest Fruits You Can Eat, According to a Nutritionist",
+            ),
+
+            SizedBox(height: 4.h),
           ],
         ),
       ),
