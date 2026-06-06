@@ -4,38 +4,64 @@ from sqlalchemy.orm import DeclarativeBase
 from app.settings import settings
 from urllib.parse import urlparse, parse_qs, urlunparse
 
-# Parse the URL and rebuild without query params (SQLAlchemy doesn't like them as kwargs)
-parsed = urlparse(str(settings.DATABASE_URL))
-clean_url = urlunparse((
-    parsed.scheme,
-    parsed.netloc,
-    parsed.path,
-    parsed.params,
-    '',  # remove query
-    parsed.fragment
-))
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.orm import DeclarativeBase
+from app.settings import settings
 
-# asyncpg will use sslmode from the original string internally if present
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.orm import DeclarativeBase
+from app.settings import settings
+
+# =========================
+# BASE MODEL
+# =========================
+class Base(DeclarativeBase):
+    pass
+
+
+# =========================
+# DATABASE URL
+# =========================
+DATABASE_URL = settings.DATABASE_URL
+
+# Convert to asyncpg format for runtime
+ASYNC_DATABASE_URL = DATABASE_URL.replace(
+    "postgresql://",
+    "postgresql+asyncpg://"
+)
+
+# =========================
+# ASYNC ENGINE (FASTAPI)
+# =========================
 engine: AsyncEngine = create_async_engine(
-    clean_url,
+    ASYNC_DATABASE_URL,
     echo=True,
     pool_pre_ping=True,
     pool_size=5,
     max_overflow=5,
-    # Optional: force SSL context if needed (rare)
-    # connect_args={"ssl": {"sslmode": "require"}}
+    connect_args={"ssl": True},  # REQUIRED for Neon
 )
 
 AsyncSessionLocal = async_sessionmaker(
     engine,
     class_=AsyncSession,
     expire_on_commit=False,
-    autoflush=False
+    autoflush=False,
 )
 
-class Base(DeclarativeBase):
-    pass
-
+# =========================
+# DB SESSION DEPENDENCY
+# =========================
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session

@@ -16,22 +16,18 @@ async def get_cart(user_id: int):
 
 
 async def add_to_cart(user_id: int, product_id: int, quantity: int = 1):
-    """Add product to cart - with check if already exists"""
     key = f"cart:{user_id}"
     cart = await get_cart(user_id)
 
-    # Check if product already in cart
     for item in cart:
         if item["product_id"] == product_id:
             item["quantity"] += quantity
             break
     else:
-        # Product not in cart, add new
         cart.append({"product_id": product_id, "quantity": quantity})
 
-    # Save back to Redis (24 hours expiry)
     await redis.set(key, json.dumps(cart), ex=86400)
-    return cart
+    return cart  
 
 
 async def get_cart_count(user_id: int) -> int:

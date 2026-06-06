@@ -1,3 +1,6 @@
+import json
+
+from app.schemas.cart import CartItem
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
@@ -11,18 +14,25 @@ from app.crud.cart import (
     apply_coupon
 )
 from app.schemas.cart import CartResponse
+from redis.asyncio import Redis
+from app.settings import settings
+
+redis = Redis.from_url(settings.REDIS_URL)
 
 router = APIRouter(prefix="/cart", tags=["cart"])
 
 @router.post("/add")
 async def add_item_to_cart(
-    product_id: int,
-    quantity: int = 1,
+    item: CartItem,                    
     current_user: User = Depends(get_current_user)
 ):
-    await add_to_cart(current_user.id, product_id, quantity)
+    cart = await add_to_cart(current_user.id, item.product_id, item.quantity)
     count = await get_cart_count(current_user.id)
-    return {"message": "Item added", "count": count}
+    return {
+        "message": "Item added to cart",
+        "count": count,
+        "cart": cart
+    }
 
 
 @router.get("/", response_model=CartResponse)

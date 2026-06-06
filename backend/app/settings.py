@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
-    DATABASE_URL: PostgresDsn = Field(...)
+    DATABASE_URL: str
 
     REDIS_URL: Optional[str] = None
     CELERY_BROKER_URL: Optional[str] = None

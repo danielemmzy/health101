@@ -14,8 +14,9 @@ class OrderItemOut(BaseModel):
         from_attributes = True
 
 class OrderCreate(BaseModel):
+    pharmacy_id: int
     delivery_address: str
-    payment_method: str = "cash"
+    payment_method: str = "stripe" or "cash_on_delivery"  # Default to Stripe, can be extended later
 
 class OrderOut(BaseModel):
     id: int
